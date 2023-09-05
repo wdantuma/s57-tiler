@@ -1,0 +1,18 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    //"244810236" 230035780
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch s57-tiler",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceRoot}/cmd/s57-tiler",
+            "args": ["--debug","--in","../../charts","--out","../../static/charts","--at","4.80559,52.95223"]
+            //"args": ["--in","../../charts","--out","../../static/charts","--bounds","4.74806,53.00672,4.88620,52.96074"]
+        }
+    ]
+}
