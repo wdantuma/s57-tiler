@@ -10,7 +10,7 @@ import (
 
 	"github.com/lukeroth/gdal"
 	"github.com/tburke/iso8211"
-	m "github.com/wdantuma/signalk-server-go/s57/mercantile"
+	m "github.com/wdantuma/s57-tiler/s57/mercantile"
 )
 
 type Layer struct {

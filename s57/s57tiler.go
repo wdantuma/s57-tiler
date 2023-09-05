@@ -15,11 +15,11 @@ import (
 	"time"
 
 	"github.com/lukeroth/gdal"
+	"github.com/wdantuma/s57-tiler/s57/dataset"
+	m "github.com/wdantuma/s57-tiler/s57/mercantile"
+	"github.com/wdantuma/s57-tiler/s57/vectortile"
 	"github.com/wdantuma/signalk-server-go/ref"
 	"github.com/wdantuma/signalk-server-go/resources/charts"
-	"github.com/wdantuma/signalk-server-go/s57/dataset"
-	m "github.com/wdantuma/signalk-server-go/s57/mercantile"
-	"github.com/wdantuma/signalk-server-go/s57/vectortile"
 	"google.golang.org/protobuf/proto"
 )
 
