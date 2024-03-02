@@ -1,23 +1,58 @@
 
-## s57-tiler
+# s57-tiler
 
-S57-tiler creates vectortiles from S57 ENC's wich can be used with freeboard-sk with s57 support see [https://github.com/wdantuma/freeboard-sk/tree/feat-S57-support](https://github.com/wdantuma/freeboard-sk/tree/feat-S57-support)
+S57-tiler creates vectortiles from S57 ENC's which can be used with freeboard-sk see [https://https://github.com/SignalK/freeboard-sk](https://https://github.com/SignalK/freeboard-sk)
+
+## Quick start ( using docker)
+
+Build docker image
+
+```
+git clone https://github.com/wdantuma/s57-tiler
+cd s57-tiler
+docker build . -t s57-tiler
+```
+
+download a S57 ENC ( see [https://opencpn.org/OpenCPN/info/chartsource.html](https://opencpn.org/OpenCPN/info/chartsource.html) for a list of possible sources), only unencrypted S57 ENC's are supported ( no S63 ).
+
+Create a directory somewhere ( eg "signalk-charts" ) with the subdirectories "enc" and "charts"  ( case sensitive )
+
+```
+signalk-charts
+   enc
+   charts
+```
+
+Extract the downloaded S57 ENC (zip) in the enc directory and run
+
+```
+docker run -v  ./signalk-charts:/app/workdir/ s57-tiler /app/s57-tiler --in workdir/enc --out workdir/charts
+```
+
+After processing ( may take some time ) the directory charts contains the vectortiles, the directory ```signalk-charts/charts``` should be added as a "chart path" in the [Signal K charts plugin](https://www.npmjs.com/package/@signalk/charts-plugin)
 
 
-## Dependencies
+
+
+
+## Development
+
+
+
+### Dependencies
 
 go 1.20
 
 GDAL 3.6.2
 
-## Get started
+### Build
 
 ```
 make builds57tiler
 ```
 
 ```
-./build/s57-tiler --in <path to directory tree container catalog.031 files> --out ./static/charts
+./build/s57-tiler --in <path to directory tree containing catalog.031 files> --out ./static/charts
 ```
 
 More options

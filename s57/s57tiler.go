@@ -282,10 +282,19 @@ func (s *s57Tiler) GetFeatures(layer gdal.Layer, tile m.TileID, tileBounds m.Ext
 	bounds := m.Extrema{N: tileBounds.N + buffer, S: tileBounds.S - buffer, W: tileBounds.W - buffer, E: tileBounds.E + buffer}
 
 	layer.SetSpatialFilterRect(bounds.W, bounds.S, bounds.E, bounds.N)
-	for feature := layer.NextFeature(); feature != nil; feature = layer.NextFeature() {
-		mvtFeature := s.toMvtFeature(feature, tileBounds)
-		if mvtFeature != nil {
-			features = append(features, mvtFeature)
+
+	ok := true
+
+	for ok {
+		feature := layer.NextFeature()
+		if feature != nil {
+			mvtFeature := s.toMvtFeature(feature, tileBounds)
+			if mvtFeature != nil {
+				features = append(features, mvtFeature)
+			}
+			feature.Destroy()
+		} else {
+			ok = false
 		}
 	}
 
@@ -369,7 +378,7 @@ func (s *s57Tiler) GenerateTile(outPath string, dataset dataset.Dataset, tile m.
 					mvtLayer.Features = append(mvtLayer.Features, features...)
 				}
 			}
-			datasource.Release()
+			datasource.Destroy()
 		}
 		if len(mvtLayer.Features) > 0 {
 			// keys
