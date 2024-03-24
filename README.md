@@ -1,7 +1,7 @@
 
 # s57-tiler
 
-S57-tiler creates vectortiles from S57 ENC's which can be used with freeboard-sk see [https://https://github.com/SignalK/freeboard-sk](https://https://github.com/SignalK/freeboard-sk)
+S57-tiler creates vectortiles from S57 ENC's which can be used with freeboard-sk see [https://github.com/SignalK/freeboard-sk](https://https://github.com/SignalK/freeboard-sk)
 
 ## Quick start ( using docker)
 
