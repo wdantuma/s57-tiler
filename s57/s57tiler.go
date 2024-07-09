@@ -104,13 +104,34 @@ func getCoordinate(coordinate int32) uint32 {
 	return uint32((coordinate << 1) ^ (coordinate >> 31))
 }
 
-func (s *s57Tiler) toMvtLinestringGeometry(geometry *gdal.Geometry, tileBounds m.Extrema) []uint32 {
+func IsClockWise(geom *gdal.Geometry) bool {
+	pc := geom.PointCount()
+	if pc < 2 {
+		return false
+	}
+	var sum float64 = 0
+	for i := 0; i < pc-1; i++ {
+		x1, y1, _ := geom.Point(i)
+		x2, y2, _ := geom.Point(i + 1)
+		sum += (x2 - x1) * (y2 + y1)
+	}
+	return sum > 0
+}
+
+func (s *s57Tiler) toMvtLinestringGeometry(geometry *gdal.Geometry, tileBounds m.Extrema, ccw bool) []uint32 {
 	mvtGeometry := make([]uint32, 0)
 	count := geometry.PointCount()
+	index := 0
+	step := 1
+	clockWise := IsClockWise(geometry)
+	if ccw && clockWise || !ccw && !clockWise {
+		index = count - 1
+		step = -1
+	}
 	if count > 1 {
 		// moveto
 		mvtGeometry = append(mvtGeometry, getCommand(1, 1))
-		x, y, _ := geometry.Point(0)
+		x, y, _ := geometry.Point(index)
 		xx, yy, _ := s.toTileCoordinate(tileBounds, x, y, 0)
 		dx := xx - s.lastx
 		dy := yy - s.lasty
@@ -119,10 +140,10 @@ func (s *s57Tiler) toMvtLinestringGeometry(geometry *gdal.Geometry, tileBounds m
 		mvtGeometry = append(mvtGeometry, getCoordinate(dx))
 		mvtGeometry = append(mvtGeometry, getCoordinate(dy))
 		// lineto
-		mvtGeometry = append(mvtGeometry, getCommand(2, geometry.PointCount()-1))
+		mvtGeometry = append(mvtGeometry, getCommand(2, count-1))
 		for i := 1; i < count; i++ {
-
-			x, y, _ := geometry.Point(i)
+			index += step
+			x, y, _ := geometry.Point(index)
 			xx, yy, _ := s.toTileCoordinate(tileBounds, x, y, 0)
 			dx := xx - s.lastx
 			dy := yy - s.lasty
@@ -136,8 +157,8 @@ func (s *s57Tiler) toMvtLinestringGeometry(geometry *gdal.Geometry, tileBounds m
 	return mvtGeometry
 }
 
-func (s *s57Tiler) toMvtPolygonGeometry(geometry *gdal.Geometry, tileBounds m.Extrema) []uint32 {
-	mvtGeometry := s.toMvtLinestringGeometry(geometry, tileBounds)
+func (s *s57Tiler) toMvtPolygonGeometry(geometry *gdal.Geometry, tileBounds m.Extrema, ccw bool) []uint32 {
+	mvtGeometry := s.toMvtLinestringGeometry(geometry, tileBounds, ccw)
 	// close path
 	mvtGeometry = append(mvtGeometry, getCommand(7, 1))
 	return mvtGeometry
@@ -174,9 +195,9 @@ func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry 
 			case vectortile.Tile_POINT:
 				mvtGeometry = append(mvtGeometry, s.toMvtPointGeometry(&geom, tileBounds)...)
 			case vectortile.Tile_LINESTRING:
-				mvtGeometry = append(mvtGeometry, s.toMvtLinestringGeometry(&geom, tileBounds)...)
+				mvtGeometry = append(mvtGeometry, s.toMvtLinestringGeometry(&geom, tileBounds, false)...)
 			case vectortile.Tile_POLYGON:
-				mvtGeometry = append(mvtGeometry, s.toMvtPolygonGeometry(&geom, tileBounds)...)
+				mvtGeometry = append(mvtGeometry, s.toMvtPolygonGeometry(&geom, tileBounds, i > 0)...)
 			}
 		}
 	} else if pointCount > 0 {
@@ -184,9 +205,9 @@ func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry 
 		case vectortile.Tile_POINT:
 			mvtGeometry = append(mvtGeometry, s.toMvtPointGeometry(geometry, tileBounds)...)
 		case vectortile.Tile_LINESTRING:
-			mvtGeometry = append(mvtGeometry, s.toMvtLinestringGeometry(geometry, tileBounds)...)
+			mvtGeometry = append(mvtGeometry, s.toMvtLinestringGeometry(geometry, tileBounds, false)...)
 		case vectortile.Tile_POLYGON:
-			mvtGeometry = append(mvtGeometry, s.toMvtPolygonGeometry(geometry, tileBounds)...)
+			mvtGeometry = append(mvtGeometry, s.toMvtPolygonGeometry(geometry, tileBounds, false)...)
 		}
 	}
 
@@ -197,11 +218,11 @@ func (s *s57Tiler) getMvtFeatureType(geometry *gdal.Geometry) *vectortile.Tile_G
 	geomType := geometry.Type()
 	var mvtGeomType vectortile.Tile_GeomType
 	switch geomType {
-	case gdal.GT_LineString, gdal.GT_MultiLineString25D:
+	case gdal.GT_LineString: //, gdal.GT_MultiLineString25D, gdal.GT_LineString25D, gdal.GT_MultiLineString:
 		mvtGeomType = vectortile.Tile_LINESTRING
-	case gdal.GT_Polygon, gdal.GT_MultiPolygon25D:
+	case gdal.GT_Polygon: //, gdal.GT_MultiPolygon25D, gdal.GT_MultiPolygon, gdal.GT_Polygon25D:
 		mvtGeomType = vectortile.Tile_POLYGON
-	case gdal.GT_Point, gdal.GT_Point25D:
+	case gdal.GT_Point, gdal.GT_MultiPoint25D: //, gdal.GT_Point25D, gdal.GT_MultiPoint, gdal.GT_MultiPoint25D:
 		mvtGeomType = vectortile.Tile_POINT
 	default:
 		mvtGeomType = vectortile.Tile_UNKNOWN
@@ -213,9 +234,7 @@ func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tileBounds m.Extrema) *ve
 	geom := feature.Geometry()
 	mvtFeature := vectortile.Tile_Feature{}
 	mvtFeature.Type = s.getMvtFeatureType(&geom)
-
 	if *mvtFeature.Type != vectortile.Tile_UNKNOWN {
-		mvtFeature.Geometry = s.toMvtGeometry(*mvtFeature.Type, &geom, tileBounds)
 		// write tags
 		for i := 0; i < feature.FieldCount(); i++ {
 			fieldDef := feature.FieldDefinition(i)
@@ -268,7 +287,7 @@ func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tileBounds m.Extrema) *ve
 				}
 			}
 		}
-
+		mvtFeature.Geometry = s.toMvtGeometry(*mvtFeature.Type, &geom, tileBounds)
 		return &mvtFeature
 	}
 	return nil
