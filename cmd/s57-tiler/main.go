@@ -42,6 +42,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if len(datasets) == 0 {
+		fmt.Println("No datasets found")
+		return
+	}
 
 	if *at != "" && *boundsFlag != "" {
 		log.Fatal("at and bounds cannot be used together")
