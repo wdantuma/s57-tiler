@@ -1,4 +1,4 @@
-FROM ghcr.io/osgeo/gdal:ubuntu-small-3.7.1 as build
+FROM ghcr.io/osgeo/gdal:ubuntu-small-3.7.1 AS build
 RUN apt-get update 
 RUN apt-get -y install libgdal-dev golang-go build-essential git
 WORKDIR /app
