@@ -5,13 +5,6 @@ S57-tiler creates vectortiles from S57 ENC's which can be used with freeboard-sk
 
 ## Quick start ( using docker)
 
-Build docker image
-
-```
-git clone https://github.com/wdantuma/s57-tiler
-cd s57-tiler
-docker build . -t s57-tiler
-```
 
 download a S57 ENC ( see [https://opencpn.org/OpenCPN/info/chartsource.html](https://opencpn.org/OpenCPN/info/chartsource.html) for a list of possible sources), only unencrypted S57 ENC's are supported ( no S63 ).
 
@@ -26,7 +19,7 @@ signalk-charts
 Extract the downloaded S57 ENC (zip) in the enc directory and run
 
 ```
-docker run -v  ./signalk-charts:/app/workdir/ s57-tiler /app/s57-tiler --in workdir/enc --out workdir/charts
+docker run -v  ./signalk-charts:/app/workdir wdantuma/s57-tiler  /app/s57-tiler --in workdir/enc --out workdir/charts
 ```
 
 After processing ( may take some time ) the directory charts contains the vectortiles, the directory ```signalk-charts/charts``` should be added as a "chart path" in the [Signal K charts plugin](https://www.npmjs.com/package/@signalk/charts-plugin)
