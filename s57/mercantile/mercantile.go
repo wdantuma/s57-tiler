@@ -46,6 +46,59 @@ func Bounds(tileid TileID) Extrema {
 	return Extrema{W: a.X, S: b.Y, E: b.X, N: a.Y}
 }
 
+func Scale(tileid TileID) int32 {
+	switch tileid.Z {
+	case 0:
+		return 500000000
+	case 1:
+		return 250000000
+	case 2:
+		return 150000000
+	case 3:
+		return 70000000
+	case 4:
+		return 35000000
+	case 5:
+		return 15000000
+	case 6:
+		return 10000000
+	case 7:
+		return 4000000
+	case 8:
+		return 2000000
+	case 9:
+		return 1000000
+	case 10:
+		return 500000
+	case 11:
+		return 250000
+	case 12:
+		return 150000
+	case 13:
+		return 70000
+	case 14:
+		return 35000
+	case 16:
+		return 15000
+	case 17:
+		return 8000
+	case 18:
+		return 4000
+	case 19:
+		return 2000
+	case 20:
+		return 1000
+	case 21:
+		return 500
+	case 22:
+		return 250
+	case 23:
+		return 150
+	default:
+		return 0
+	}
+}
+
 // Returns the (x, y, z) tile.
 func Tile(lng float64, lat float64, zoom int) TileID {
 	lat = lat * (math.Pi / 180.0)

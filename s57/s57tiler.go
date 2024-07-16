@@ -293,6 +293,27 @@ func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tileBounds m.Extrema) *ve
 	return nil
 }
 
+func includeFeatureInTile(feature gdal.Feature, tile m.TileID) bool {
+
+	scale := m.Scale(tile)
+	scaminIndex := feature.FieldIndex("SCAMIN")
+	if scaminIndex >= 0 {
+		scamin := feature.FieldAsFloat64(scaminIndex)
+		if scamin != 0 && scamin < float64(scale) {
+			return false
+		}
+	}
+	scamaxIndex := feature.FieldIndex("SCAMAX")
+	if scamaxIndex >= 0 {
+		scamax := feature.FieldAsFloat64(scamaxIndex)
+		if scamax != 0 && scamax > float64(scale) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (s *s57Tiler) GetFeatures(layer gdal.Layer, tile m.TileID, tileBounds m.Extrema) []*vectortile.Tile_Feature {
 
 	features := make([]*vectortile.Tile_Feature, 0)
@@ -307,9 +328,11 @@ func (s *s57Tiler) GetFeatures(layer gdal.Layer, tile m.TileID, tileBounds m.Ext
 	for ok {
 		feature := layer.NextFeature()
 		if feature != nil {
-			mvtFeature := s.toMvtFeature(feature, tileBounds)
-			if mvtFeature != nil {
-				features = append(features, mvtFeature)
+			if includeFeatureInTile(*feature, tile) {
+				mvtFeature := s.toMvtFeature(feature, tileBounds)
+				if mvtFeature != nil {
+					features = append(features, mvtFeature)
+				}
 			}
 			feature.Destroy()
 		} else {

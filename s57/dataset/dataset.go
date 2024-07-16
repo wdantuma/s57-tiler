@@ -111,6 +111,7 @@ func GetS57Datasets(path string) ([]Dataset, error) {
 							filePath := strings.ReplaceAll(fileName, "\\", string(os.PathSeparator))
 							filePath = filepath.Join(filepath.Dir(fp), filePath)
 							datasource := gdal.OpenDataSource(filePath, 0)
+							defer datasource.Destroy()
 							parts = strings.Split(filePath, string(os.PathSeparator))
 							file := File{
 								Id:     parts[len(parts)-2],
@@ -118,7 +119,6 @@ func GetS57Datasets(path string) ([]Dataset, error) {
 								Layers: getLayers(datasource),
 							}
 							dataset.Files = append(dataset.Files, file)
-							datasource.Release()
 						}
 
 					}
