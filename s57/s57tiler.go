@@ -350,9 +350,27 @@ func (s *s57Tiler) GetTiles(file dataset.File, zoomLevel int) map[string]m.TileI
 	return tiles
 }
 
+func getBounds(file dataset.File) []float32 {
+
+	var bounds []float32
+	layer, ok := file.Layers["M_COVR"]
+	if ok {
+		datasource := gdal.OpenDataSource(file.Path, 0)
+		defer datasource.Destroy()
+		bounds = make([]float32, 4)
+		bounds[0] = float32(layer.Bounds.MinX())
+		bounds[1] = float32(layer.Bounds.MinY())
+		bounds[2] = float32(layer.Bounds.MaxX())
+		bounds[3] = float32(layer.Bounds.MaxY())
+	}
+
+	return bounds
+}
+
 func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset, file dataset.File) {
 	path := filepath.Join(outPath, file.Id, "metadata.json")
-	metaData := charts.ChartMetaData{Id: file.Id, Name: file.Id, Description: dataset.Description, Created: time.Now().UTC(), Type: "S-57", Format: "pbf", MinZoom: s.minZoom, MaxZoom: s.maxZoom}
+	bounds := getBounds(file)
+	metaData := charts.ChartMetaData{Id: file.Id, Name: file.Id, Description: dataset.Description, Created: time.Now().UTC(), Type: "S-57", Format: "pbf", MinZoom: s.minZoom, MaxZoom: s.maxZoom, Bounds: bounds}
 
 	out, _ := json.Marshal(metaData)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
