@@ -11,8 +11,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceRoot}/cmd/s57-tiler",
-            "args": ["--debug","--in","../../charts","--out","../../static/charts","--at","4.80559,52.95223"]
-            //"args": ["--in","../../charts","--out","../../static/charts","--bounds","4.74806,53.00672,4.88620,52.96074"]
+            "args": ["--in","../../charts","--out","../../charts_out"]
         }
     ]
 }

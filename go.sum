@@ -12,8 +12,8 @@ github.com/tburke/iso8211 v0.0.0-20190905204635-916caaad4cc1 h1:xFRyaCFED0QxyK81
 github.com/tburke/iso8211 v0.0.0-20190905204635-916caaad4cc1/go.mod h1:lMggrfJDoGgWMR6eA/YNok29py4uBnKzOP5BtX47mKk=
 github.com/wdantuma/gdal v0.0.0-20240715134249-3d7dd40d7ca1 h1:VSzVBaDZNlcAbOkHsPKpKWY2D6Z4rrQ1SGshXXlLoqY=
 github.com/wdantuma/gdal v0.0.0-20240715134249-3d7dd40d7ca1/go.mod h1:PKPy2jFnSiaib790HB0NZHI/M0Bsd1LefCZb1e34OfA=
-github.com/wdantuma/signalk-server-go v0.0.0-20230905090637-c7200927141e h1:XFmPXMMloBFgD5/PO63xVdTjmqUN9N8rHNlmjUqbFsA=
-github.com/wdantuma/signalk-server-go v0.0.0-20230905090637-c7200927141e/go.mod h1:gs3RlnAbRq0/PKb6Omx7H8i6FlXzWNCj9hvMf8u0uyE=
+github.com/wdantuma/signalk-server-go v0.0.0-20240715110006-b0c17acbf5fa h1:vQ/6mNWZb6Ghv1LCYjHcIGwDGl5NB9wtArpqYX93kNA=
+github.com/wdantuma/signalk-server-go v0.0.0-20240715110006-b0c17acbf5fa/go.mod h1:u/xwGHlB+ILL3CGNnYoyXtHgVLvP89c3fV//Gf64rQM=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 google.golang.org/protobuf v1.26.0-rc.1/go.mod h1:jlhhOSvTdKEhbULTjvd4ARK9grFBp09yW+WbY/TyQbw=
 google.golang.org/protobuf v1.31.0 h1:g0LDEJHgrBl9N9r17Ru3sqWhkIx2NB67okBHPwC7hs8=

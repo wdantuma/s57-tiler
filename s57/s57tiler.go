@@ -336,25 +336,23 @@ func (s *s57Tiler) GetTilesForBounds(tiles map[string]m.TileID, bounds m.Extrema
 	return tiles
 }
 
-func (s *s57Tiler) GetTiles(dataset dataset.Dataset, zoomLevel int) map[string]m.TileID {
+func (s *s57Tiler) GetTiles(file dataset.File, zoomLevel int) map[string]m.TileID {
 	tiles := make(map[string]m.TileID)
-	for _, file := range dataset.Files {
-		datasource := gdal.OpenDataSource(file.Path, 0)
-		for i := 0; i < datasource.LayerCount(); i++ {
-			l := datasource.LayerByIndex(i)
-			ext, err := l.Extent(true)
-			if err == nil {
-				tiles = s.GetTilesForBounds(tiles, m.Extrema{W: ext.MinX(), N: ext.MaxY(), E: ext.MaxX(), S: ext.MinY()}, zoomLevel)
-			}
+	datasource := gdal.OpenDataSource(file.Path, 0)
+	defer datasource.Destroy()
+	for i := 0; i < datasource.LayerCount(); i++ {
+		l := datasource.LayerByIndex(i)
+		ext, err := l.Extent(true)
+		if err == nil {
+			tiles = s.GetTilesForBounds(tiles, m.Extrema{W: ext.MinX(), N: ext.MaxY(), E: ext.MaxX(), S: ext.MinY()}, zoomLevel)
 		}
-		datasource.Release()
 	}
 	return tiles
 }
 
-func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset) {
-	path := filepath.Join(outPath, dataset.Id, "metadata.json")
-	metaData := charts.ChartMetaData{Id: dataset.Id, Name: dataset.Id, Description: dataset.Description, Created: time.Now().UTC(), Type: "S-57", Format: "pbf", MinZoom: s.minZoom, MaxZoom: s.maxZoom}
+func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset, file dataset.File) {
+	path := filepath.Join(outPath, file.Id, "metadata.json")
+	metaData := charts.ChartMetaData{Id: file.Id, Name: file.Id, Description: dataset.Description, Created: time.Now().UTC(), Type: "S-57", Format: "pbf", MinZoom: s.minZoom, MaxZoom: s.maxZoom}
 
 	out, _ := json.Marshal(metaData)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -366,11 +364,8 @@ func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset) {
 	}
 }
 
-func (s *s57Tiler) GenerateTile(outPath string, dataset dataset.Dataset, tile m.TileID) {
+func (s *s57Tiler) GenerateTile(outPath string, file dataset.File, tile m.TileID) {
 	mvtTile := vectortile.Tile{}
-
-	tiledataSets := dataset.GetDatasetForTile(tile)
-	layers := tiledataSets.GetLayers()
 
 	//allowedLayers := []string{"BOYLAT", "BOYCAR", "BOYINB", "BOYISD", "BOYSAW", "BOYSPP", "BCNLAT", "BCNCAR", "BCNISN", "BCNSAW", "BCNSPP", "LIGHTS", "DEPARE", "SEAARE", "COALNE", "RESARE", "UNSARE", "LNDARE", "BUAARE", "NAVLNE", "RECTRC", "CANALS"}
 
@@ -381,23 +376,21 @@ func (s *s57Tiler) GenerateTile(outPath string, dataset dataset.Dataset, tile m.
 	tileEnvelope.SetMinX(bounds.W)
 	tileEnvelope.SetMinY(bounds.S)
 
-	for _, layerName := range layers {
+	for layerName, layer := range file.Layers {
 		ln := layerName
 		var version uint32 = 2
 		var extent uint32 = TILE_EXTENT
 		s.startLayer()
 		mvtLayer := vectortile.Tile_Layer{Name: &ln, Version: &version, Extent: &extent}
-		for _, file := range tiledataSets.Files {
-			datasource := gdal.OpenDataSource(file.Path, 0)
-			if file.LayerExists(layerName) && file.Layers[layerName].Bounds.Intersects(tileEnvelope) {
-				l := datasource.LayerByName(layerName)
-				c, ok := l.FeatureCount(false)
-				if ok && c > 0 {
-					features := s.GetFeatures(l, tile, bounds)
-					mvtLayer.Features = append(mvtLayer.Features, features...)
-				}
+		datasource := gdal.OpenDataSource(file.Path, 0)
+		defer datasource.Destroy()
+		if layer.Bounds.Intersects(tileEnvelope) {
+			l := datasource.LayerByName(layerName)
+			c, ok := l.FeatureCount(false)
+			if ok && c > 0 {
+				features := s.GetFeatures(l, tile, bounds)
+				mvtLayer.Features = append(mvtLayer.Features, features...)
 			}
-			datasource.Destroy()
 		}
 		if len(mvtLayer.Features) > 0 {
 			// keys
@@ -426,7 +419,7 @@ func (s *s57Tiler) GenerateTile(outPath string, dataset dataset.Dataset, tile m.
 		}
 	}
 
-	path := filepath.Join(outPath, dataset.Id, strconv.Itoa(int(tile.Z)), strconv.Itoa(int(tile.X)), strconv.Itoa(int(tile.Y))) + ".pbf"
+	path := filepath.Join(outPath, file.Id, strconv.Itoa(int(tile.Z)), strconv.Itoa(int(tile.X)), strconv.Itoa(int(tile.Y))) + ".pbf"
 	if len(mvtTile.Layers) > 0 {
 		out, _ := proto.Marshal(&mvtTile)
 		if _, err := os.Stat(path); os.IsNotExist(err) {

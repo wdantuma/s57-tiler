@@ -19,6 +19,7 @@ type Layer struct {
 }
 
 type File struct {
+	Id     string
 	Path   string
 	Layers map[string]Layer
 }
@@ -110,7 +111,9 @@ func GetS57Datasets(path string) ([]Dataset, error) {
 							filePath := strings.ReplaceAll(fileName, "\\", string(os.PathSeparator))
 							filePath = filepath.Join(filepath.Dir(fp), filePath)
 							datasource := gdal.OpenDataSource(filePath, 0)
+							parts = strings.Split(filePath, string(os.PathSeparator))
 							file := File{
+								Id:     parts[len(parts)-2],
 								Path:   filePath,
 								Layers: getLayers(datasource),
 							}

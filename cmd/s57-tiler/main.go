@@ -95,29 +95,32 @@ func main() {
 
 	tiler := s57.NewS57Tiler(datasets, *minzoom, *maxzoom)
 
-	for z := *minzoom; z <= *maxzoom; z++ {
-		var tiles map[string]m.TileID = make(map[string]m.TileID)
-		if tile != nil {
-			tiles = make(map[string]m.TileID)
-			tiles["tile"] = *tile
-		} else {
-			if bounds != nil {
-				tiles = tiler.GetTilesForBounds(nil, *bounds, z)
-			} else {
-				tiles = tiler.GetTiles(datasets[0], z)
+	for _, dataset := range datasets {
+		for _, file := range dataset.Files {
+			for z := *minzoom; z <= *maxzoom; z++ {
+				var tiles map[string]m.TileID = make(map[string]m.TileID)
+				if tile != nil {
+					tiles = make(map[string]m.TileID)
+					tiles["tile"] = *tile
+				} else {
+					if bounds != nil {
+						tiles = tiler.GetTilesForBounds(nil, *bounds, z)
+					} else {
+						tiles = tiler.GetTiles(file, z)
+					}
+				}
+
+				total := len(tiles)
+				n := 0
+				for k := range tiles {
+					tiler.GenerateTile(*outputPath, file, tiles[k])
+					done := float64(n) / float64(total) * 100
+					fmt.Printf("\rDataset: %s, File: %s, Zoom: %d, Processed: %.0f %%    ", dataset.Id, file.Id, z, done)
+					n++
+				}
+				fmt.Printf("\rDataset: %s, File: %s, Zoom: %d, Processed: 100 %%    \n", dataset.Id, file.Id, z)
+				tiler.GenerateMetaData(*outputPath, dataset, file)
 			}
 		}
-
-		total := len(tiles)
-		n := 0
-		for k := range tiles {
-			tiler.GenerateTile(*outputPath, datasets[0], tiles[k])
-			done := float64(n) / float64(total) * 100
-			fmt.Printf("\rZoom: %d, Processed: %.0f %%    ", z, done)
-			n++
-		}
-		fmt.Printf("\n\n")
-		tiler.GenerateMetaData(*outputPath, datasets[0])
 	}
-
 }
