@@ -11,7 +11,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceRoot}/cmd/s57-tiler",
-            "args": ["--in","../../charts/US4NY1NS","--out","../../charts_out"]
+            "args": ["--in","../../charts/","--out","../../charts_out"]
         }
     ]
 }

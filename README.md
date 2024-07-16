@@ -19,7 +19,7 @@ signalk-charts
 Extract the downloaded S57 ENC (zip) in the enc directory and run
 
 ```
-docker run -v  ./signalk-charts:/app/workdir wdantuma/s57-tiler  /app/s57-tiler --in workdir/enc --out workdir/charts
+docker run -v  ./signalk-charts:/app/workdir wdantuma/s57-tiler:latest  /app/s57-tiler --in workdir/enc --out workdir/charts
 ```
 
 After processing ( may take some time ) the directory charts contains the vectortiles, the directory ```signalk-charts/charts``` should be added as a "chart path" in the [Signal K charts plugin](https://www.npmjs.com/package/@signalk/charts-plugin)
