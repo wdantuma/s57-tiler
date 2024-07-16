@@ -27,7 +27,7 @@ func main() {
 
 	outputPath := flag.String("out", "./static/charts", "Output directory for vector tiles")
 	inputPath := flag.String("in", "./charts", "Input path S-57 ENC's")
-	minzoom := flag.Int("minzoom", 14, "Min zoom")
+	minzoom := flag.Int("minzoom", 9, "Min zoom")
 	maxzoom := flag.Int("maxzoom", 14, "Max zoom")
 	boundsFlag := flag.String("bounds", "", "W,N,E,S")
 	debug := flag.Bool("debug", false, "Show debug info")
