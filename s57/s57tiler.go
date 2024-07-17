@@ -24,7 +24,9 @@ import (
 )
 
 const (
-	TILE_EXTENT = 4096
+	TILE_EXTENT                   = 4096
+	TILE_DIMENSION_AT_0   float64 = 360 //40075016.686
+	SIMPLIFICATION_FACTOR         = 1
 )
 
 type ValueType int
@@ -121,14 +123,15 @@ func IsClockWise(geom *gdal.Geometry) bool {
 func (s *s57Tiler) toMvtLinestringGeometry(geometry *gdal.Geometry, tileBounds m.Extrema, ccw bool) []uint32 {
 	mvtGeometry := make([]uint32, 0)
 	count := geometry.PointCount()
-	index := 0
-	step := 1
-	clockWise := IsClockWise(geometry)
-	if ccw && clockWise || !ccw && !clockWise {
-		index = count - 1
-		step = -1
-	}
+
 	if count > 1 {
+		index := 0
+		step := 1
+		clockWise := IsClockWise(geometry)
+		if ccw && clockWise || !ccw && !clockWise {
+			index = count - 1
+			step = -1
+		}
 		// moveto
 		mvtGeometry = append(mvtGeometry, getCommand(1, 1))
 		x, y, _ := geometry.Point(index)
@@ -182,15 +185,22 @@ func (s *s57Tiler) toMvtPointGeometry(geometry *gdal.Geometry, tileBounds m.Extr
 	return mvtGeometry
 }
 
-func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry *gdal.Geometry, tileBounds m.Extrema) []uint32 {
+func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry *gdal.Geometry, tile m.TileID, tileBounds m.Extrema) []uint32 {
 	s.lastx = 0
 	s.lasty = 0
 	mvtGeometry := make([]uint32, 0)
-	geomcount := geometry.GeometryCount()
-	pointCount := geometry.PointCount()
+
+	tolerance := TILE_DIMENSION_AT_0 / math.Pow(2, float64(tile.Z)) / 256 * SIMPLIFICATION_FACTOR
+
+	simplifiedGeometry := geometry.SimplifyPreservingTopology(tolerance)
+	defer simplifiedGeometry.Destroy()
+
+	geomcount := simplifiedGeometry.GeometryCount()
+	pointCount := simplifiedGeometry.PointCount()
+
 	if geomcount > 0 {
 		for i := 0; i < geomcount; i++ {
-			geom := geometry.Geometry(i)
+			geom := simplifiedGeometry.Geometry(i)
 			switch featureType {
 			case vectortile.Tile_POINT:
 				mvtGeometry = append(mvtGeometry, s.toMvtPointGeometry(&geom, tileBounds)...)
@@ -203,11 +213,11 @@ func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry 
 	} else if pointCount > 0 {
 		switch featureType {
 		case vectortile.Tile_POINT:
-			mvtGeometry = append(mvtGeometry, s.toMvtPointGeometry(geometry, tileBounds)...)
+			mvtGeometry = append(mvtGeometry, s.toMvtPointGeometry(&simplifiedGeometry, tileBounds)...)
 		case vectortile.Tile_LINESTRING:
-			mvtGeometry = append(mvtGeometry, s.toMvtLinestringGeometry(geometry, tileBounds, false)...)
+			mvtGeometry = append(mvtGeometry, s.toMvtLinestringGeometry(&simplifiedGeometry, tileBounds, false)...)
 		case vectortile.Tile_POLYGON:
-			mvtGeometry = append(mvtGeometry, s.toMvtPolygonGeometry(geometry, tileBounds, false)...)
+			mvtGeometry = append(mvtGeometry, s.toMvtPolygonGeometry(&simplifiedGeometry, tileBounds, false)...)
 		}
 	}
 
@@ -230,7 +240,7 @@ func (s *s57Tiler) getMvtFeatureType(geometry *gdal.Geometry) *vectortile.Tile_G
 	return &mvtGeomType
 }
 
-func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tileBounds m.Extrema) *vectortile.Tile_Feature {
+func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tile m.TileID, tileBounds m.Extrema) *vectortile.Tile_Feature {
 	geom := feature.Geometry()
 	mvtFeature := vectortile.Tile_Feature{}
 	mvtFeature.Type = s.getMvtFeatureType(&geom)
@@ -287,7 +297,7 @@ func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tileBounds m.Extrema) *ve
 				}
 			}
 		}
-		mvtFeature.Geometry = s.toMvtGeometry(*mvtFeature.Type, &geom, tileBounds)
+		mvtFeature.Geometry = s.toMvtGeometry(*mvtFeature.Type, &geom, tile, tileBounds)
 		return &mvtFeature
 	}
 	return nil
@@ -329,7 +339,7 @@ func (s *s57Tiler) GetFeatures(layer gdal.Layer, tile m.TileID, tileBounds m.Ext
 		feature := layer.NextFeature()
 		if feature != nil {
 			if includeFeatureInTile(*feature, tile) {
-				mvtFeature := s.toMvtFeature(feature, tileBounds)
+				mvtFeature := s.toMvtFeature(feature, tile, tileBounds)
 				if mvtFeature != nil {
 					features = append(features, mvtFeature)
 				}

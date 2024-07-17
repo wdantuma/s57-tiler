@@ -115,10 +115,10 @@ func main() {
 				for k := range tiles {
 					tiler.GenerateTile(*outputPath, file, tiles[k])
 					done := float64(n) / float64(total) * 100
-					fmt.Printf("\rDataset: %s, File: %s, Zoom: %d, Processed: %.0f %%    ", dataset.Id, file.Id, z, done)
+					fmt.Printf("\rDataset: %s, Map: %s, Zoom: %d, Processed: %.0f %%    ", dataset.Id, file.Id, z, done)
 					n++
 				}
-				fmt.Printf("\rDataset: %s, File: %s, Zoom: %d, Processed: 100 %%    \n", dataset.Id, file.Id, z)
+				fmt.Printf("\rDataset: %s, Map: %s, Zoom: %d, Processed: 100 %%    \n", dataset.Id, file.Id, z)
 				tiler.GenerateMetaData(*outputPath, dataset, file)
 			}
 		}
