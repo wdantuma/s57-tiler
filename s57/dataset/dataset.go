@@ -110,11 +110,11 @@ func GetS57Datasets(path string) ([]Dataset, error) {
 						if strings.Contains(fileName, ".000") {
 							filePath := strings.ReplaceAll(fileName, "\\", string(os.PathSeparator))
 							filePath = filepath.Join(filepath.Dir(fp), filePath)
+							parts = strings.Split(filePath, string(os.PathSeparator))
 							datasource := gdal.OpenDataSource(filePath, 0)
 							defer datasource.Destroy()
-							parts = strings.Split(filePath, string(os.PathSeparator))
 							file := File{
-								Id:     parts[len(parts)-2],
+								Id:     parts[len(parts)-1][0 : len(parts[len(parts)-1])-4],
 								Path:   filePath,
 								Layers: getLayers(datasource),
 							}
