@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
-
+	"sync"
+	"sync/atomic"
 	"github.com/lukeroth/gdal"
 	"github.com/wdantuma/s57-tiler/s57"
 	"github.com/wdantuma/s57-tiler/s57/dataset"
@@ -32,7 +34,12 @@ func main() {
 	boundsFlag := flag.String("bounds", "", "W,N,E,S")
 	debug := flag.Bool("debug", false, "Show debug info")
 	at := flag.String("at", "", "lon,lat")
+	workers := flag.Int("workers", runtime.NumCPU()-1, "Number of parallel tile workers") // keep one CPU available for system responsiveness
 	flag.Parse()
+
+	if *workers < 1 {
+		*workers = 1
+	}
 
 	if !*debug {
 		os.Setenv("CPL_LOG", "/dev/null") // supress gdal errors
@@ -111,13 +118,30 @@ func main() {
 				}
 
 				total := len(tiles)
-				n := 0
-				for k := range tiles {
-					tiler.GenerateTile(*outputPath, file, tiles[k])
-					done := float64(n) / float64(total) * 100
-					fmt.Printf("\rDataset: %s, Map: %s, Zoom: %d, Processed: %.0f %%    ", dataset.Id, file.Id, z, done)
-					n++
+				var done int64
+
+				jobs := make(chan m.TileID, *workers*2)
+				var wg sync.WaitGroup
+				for w := 0; w < *workers; w++ {
+					wg.Add(1)
+					go func() {
+						defer wg.Done()
+						// Per-worker tiler: GenerateTile mutates per-call state
+						// (keysMap/values/lastx/lasty) so instances cannot be shared.
+						workerTiler := s57.NewS57Tiler(datasets, *minzoom, *maxzoom)
+						for tile := range jobs {
+							workerTiler.GenerateTile(*outputPath, file, tile)
+							n := atomic.AddInt64(&done, 1)
+							fmt.Printf("\rDataset: %s, Map: %s, Zoom: %d, Processed: %.0f %%    ",
+								dataset.Id, file.Id, z, float64(n)/float64(total)*100)
+						}
+					}()
 				}
+				for k := range tiles {
+					jobs <- tiles[k]
+				}
+				close(jobs)
+				wg.Wait()
 				fmt.Printf("\rDataset: %s, Map: %s, Zoom: %d, Processed: 100 %%    \n", dataset.Id, file.Id, z)
 				tiler.GenerateMetaData(*outputPath, dataset, file)
 			}
