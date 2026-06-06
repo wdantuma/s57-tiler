@@ -99,4 +99,6 @@ Usage of build/s57-tiler:
         Min zoom (default 9)
   -out string
         Output directory for vector tiles (default "./static/charts")
+  -workers int
+        Number of parallel tile workers (default: number of CPUs - 1)
 ```
