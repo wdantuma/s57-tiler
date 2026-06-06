@@ -3,16 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/lukeroth/gdal"
+	"github.com/wdantuma/s57-tiler/s57"
+	"github.com/wdantuma/s57-tiler/s57/dataset"
+	m "github.com/wdantuma/s57-tiler/s57/mercantile"
 	"log"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
-	"github.com/lukeroth/gdal"
-	"github.com/wdantuma/s57-tiler/s57"
-	"github.com/wdantuma/s57-tiler/s57/dataset"
-	m "github.com/wdantuma/s57-tiler/s57/mercantile"
 )
 
 func main() {
@@ -23,8 +23,8 @@ func main() {
 	}
 	driver.Register()
 
-	// set gdal options
-	os.Setenv("OGR_GEOMETRY_ACCEPT_UNCLOSED_RING", "NO")
+	// GDAL S-57 reader options (incl. SOUNDG handling) are configured in the dataset
+	// package's init, so they apply consistently to the CLI and tests.
 
 	outputPath := flag.String("out", "./static/charts", "Output directory for vector tiles")
 	inputPath := flag.String("in", "./charts", "Input path S-57 ENC's")
