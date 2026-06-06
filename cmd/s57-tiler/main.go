@@ -42,7 +42,7 @@ func main() {
 	}
 
 	if !*debug {
-		os.Setenv("CPL_LOG", "/dev/null") // supress gdal errors
+		os.Setenv("CPL_LOG", os.DevNull) // supress gdal errors
 	}
 
 	datasets, err := dataset.GetS57Datasets(*inputPath)

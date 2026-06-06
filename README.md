@@ -34,14 +34,49 @@ After processing ( may take some time ) the directory charts contains the vector
 
 ### Dependencies
 
-go 1.20
+go 1.22
 
-GDAL 3.6.2
+GDAL (development headers, discovered via `pkg-config`)
+
+- macOS: `brew install gdal`
+- Debian/Ubuntu/Raspberry Pi OS: `sudo apt-get install -y libgdal-dev build-essential`
 
 ### Build
 
+Native build for the host platform (macOS arm64, linux/amd64, linux/arm64, …):
+
 ```
-make builds57tiler
+make build
+```
+
+### macOS (Apple Silicon)
+
+```
+brew install gdal
+make darwin-arm64
+./build/s57-tiler-darwin-arm64 --in ./enc --out ./static/charts
+```
+
+The binary targets the M1 baseline, so it runs on all M-series Macs (M1–M4 and later)
+regardless of which Mac built it.
+
+### Raspberry Pi (64-bit / arm64)
+
+Build natively on a 64-bit Raspberry Pi OS:
+
+```
+sudo apt-get update && sudo apt-get install -y libgdal-dev build-essential golang
+make linux-arm64
+./build/s57-tiler-linux-arm64 --in ./enc --out ./static/charts
+```
+
+Or just `docker run ... wdantuma/s57-tiler:latest` — the published image is multi-arch
+(linux/amd64 + linux/arm64), so the same command in the quickstart works on a Pi.
+
+To build and publish the multi-arch image yourself:
+
+```
+make docker-buildx          # builds linux/amd64 + linux/arm64 and pushes
 ```
 
 ```
