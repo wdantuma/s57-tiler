@@ -49,6 +49,17 @@ Native build for the host platform (macOS arm64, linux/amd64, linux/arm64, …):
 make build
 ```
 
+### macOS (Apple Silicon)
+
+```
+brew install gdal
+make darwin-arm64
+./build/s57-tiler-darwin-arm64 --in ./enc --out ./static/charts
+```
+
+The binary targets the M1 baseline, so it runs on all M-series Macs (M1–M4 and later)
+regardless of which Mac built it.
+
 ### Raspberry Pi (64-bit / arm64)
 
 Build natively on a 64-bit Raspberry Pi OS:

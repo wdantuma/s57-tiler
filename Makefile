@@ -19,6 +19,23 @@ build/s57-tiler-linux-arm64:
 
 linux-arm64: build/s57-tiler-linux-arm64
 
+# Homebrew GDAL prefix — deferred (=) so non-macOS targets never invoke brew.
+GDAL_PREFIX = $(shell brew --prefix gdal 2>/dev/null)
+
+# Native macOS / Apple Silicon (M1–M4+) release build. Requires `brew install gdal`.
+build/s57-tiler-darwin-arm64:
+	@if [ -z "$(GDAL_PREFIX)" ]; then \
+		echo "Homebrew GDAL not found. Run: brew install gdal"; exit 1; \
+	fi
+	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 \
+	CGO_CFLAGS="-I$(GDAL_PREFIX)/include -O3 -mcpu=apple-m1 -flto=thin" \
+	CGO_CXXFLAGS="-I$(GDAL_PREFIX)/include -O3 -mcpu=apple-m1 -flto=thin" \
+	CGO_LDFLAGS="-L$(GDAL_PREFIX)/lib -lgdal -Wl,-rpath,$(GDAL_PREFIX)/lib" \
+	go build -trimpath -buildmode=pie -ldflags="-s -w" \
+		-o build/s57-tiler-darwin-arm64 ./cmd/s57-tiler
+
+darwin-arm64: build/s57-tiler-darwin-arm64
+
 # Multi-arch Docker image (amd64 + arm64/Raspberry Pi). Use --load for a single local arch.
 docker-buildx:
 	docker buildx build --platform linux/amd64,linux/arm64 -t $(IMAGE) --push .
