@@ -1,19 +1,25 @@
 VERSION=0.0.1
 IMAGE ?= wdantuma/s57-tiler:latest
 
+# All Go sources (plus module files) — build targets depend on these so they
+# rebuild when code changes instead of being treated as permanently up-to-date.
+GOFILES := $(shell find . -name '*.go') go.mod go.sum
+
+.PHONY: build linux-arm64 darwin-arm64 docker-buildx runs57tiler clean
+
 # Native host build (links the locally-installed GDAL via cgo/pkg-config).
-build/s57-tiler:
+build/s57-tiler: $(GOFILES)
 	go build -o build/s57-tiler ./cmd/s57-tiler
 
 build: build/s57-tiler
 
 # Explicit Linux/amd64 cross artifact (requires a matching cgo+GDAL toolchain).
-build/s57-tiler-linux-amd64:
+build/s57-tiler-linux-amd64: $(GOFILES)
 	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" \
 		-o build/s57-tiler-linux-amd64 ./cmd/s57-tiler
 
 # Native Raspberry Pi / linux-arm64 build. Run on a 64-bit Pi with libgdal-dev installed.
-build/s57-tiler-linux-arm64:
+build/s57-tiler-linux-arm64: $(GOFILES)
 	CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w" \
 		-o build/s57-tiler-linux-arm64 ./cmd/s57-tiler
 
@@ -23,7 +29,7 @@ linux-arm64: build/s57-tiler-linux-arm64
 GDAL_PREFIX = $(shell brew --prefix gdal 2>/dev/null)
 
 # Native macOS / Apple Silicon (M1–M4+) release build. Requires `brew install gdal`.
-build/s57-tiler-darwin-arm64:
+build/s57-tiler-darwin-arm64: $(GOFILES)
 	@if [ -z "$(GDAL_PREFIX)" ]; then \
 		echo "Homebrew GDAL not found. Run: brew install gdal"; exit 1; \
 	fi
@@ -45,4 +51,4 @@ runs57tiler: build/s57-tiler
 
 clean:
 	go clean
-	rm build/*
+	rm -f build/*
