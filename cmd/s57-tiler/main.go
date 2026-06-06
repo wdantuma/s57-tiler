@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
-
+	"sync"
 	"github.com/lukeroth/gdal"
 	"github.com/wdantuma/s57-tiler/s57"
 	"github.com/wdantuma/s57-tiler/s57/dataset"
@@ -32,10 +33,15 @@ func main() {
 	boundsFlag := flag.String("bounds", "", "W,N,E,S")
 	debug := flag.Bool("debug", false, "Show debug info")
 	at := flag.String("at", "", "lon,lat")
+	workers := flag.Int("workers", runtime.NumCPU()-1, "Number of parallel tile workers") // keep one CPU available for system responsiveness
 	flag.Parse()
 
+	if *workers < 1 {
+		*workers = 1
+	}
+
 	if !*debug {
-		os.Setenv("CPL_LOG", "/dev/null") // supress gdal errors
+		os.Setenv("CPL_LOG", os.DevNull) // supress gdal errors
 	}
 
 	datasets, err := dataset.GetS57Datasets(*inputPath)
@@ -95,32 +101,69 @@ func main() {
 
 	tiler := s57.NewS57Tiler(datasets, *minzoom, *maxzoom)
 
+	// Pre-pass: compute the tile set for every (dataset, file, zoom) up front so
+	// progress can be reported against a single global total with an ETA. Tile IDs
+	// are tiny, so materializing them all is cheap.
+	fmt.Println("Scanning…")
+	var work []workUnit
+	var grandTotal int64
 	for _, dataset := range datasets {
 		for _, file := range dataset.Files {
 			for z := *minzoom; z <= *maxzoom; z++ {
-				var tiles map[string]m.TileID = make(map[string]m.TileID)
+				var tiles map[string]m.TileID
 				if tile != nil {
-					tiles = make(map[string]m.TileID)
-					tiles["tile"] = *tile
+					tiles = map[string]m.TileID{"tile": *tile}
+				} else if bounds != nil {
+					tiles = tiler.GetTilesForBounds(nil, *bounds, z)
 				} else {
-					if bounds != nil {
-						tiles = tiler.GetTilesForBounds(nil, *bounds, z)
-					} else {
-						tiles = tiler.GetTiles(file, z)
-					}
+					tiles = tiler.GetTiles(file, z)
 				}
 
-				total := len(tiles)
-				n := 0
-				for k := range tiles {
-					tiler.GenerateTile(*outputPath, file, tiles[k])
-					done := float64(n) / float64(total) * 100
-					fmt.Printf("\rDataset: %s, Map: %s, Zoom: %d, Processed: %.0f %%    ", dataset.Id, file.Id, z, done)
-					n++
+				ids := make([]m.TileID, 0, len(tiles))
+				for _, t := range tiles {
+					ids = append(ids, t)
 				}
-				fmt.Printf("\rDataset: %s, Map: %s, Zoom: %d, Processed: 100 %%    \n", dataset.Id, file.Id, z)
-				tiler.GenerateMetaData(*outputPath, dataset, file)
+				work = append(work, workUnit{dataset: dataset, file: file, z: z, tiles: ids})
+				grandTotal += int64(len(ids))
 			}
 		}
 	}
+
+	prog := newProgress(grandTotal, os.Stdout)
+	go prog.run()
+	for _, wu := range work {
+		prog.setStage(fmt.Sprintf("%s, Zoom: %d", wu.file.Id, wu.z))
+
+		jobs := make(chan m.TileID, *workers*2)
+		var wg sync.WaitGroup
+		for w := 0; w < *workers; w++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				// Per-worker tiler: GenerateTile mutates per-call state
+				// (keysMap/values/lastx/lasty) so instances cannot be shared.
+				workerTiler := s57.NewS57Tiler(datasets, *minzoom, *maxzoom)
+				for tile := range jobs {
+					workerTiler.GenerateTile(*outputPath, wu.file, tile)
+					prog.inc()
+				}
+			}()
+		}
+		for _, t := range wu.tiles {
+			jobs <- t
+		}
+		close(jobs)
+		wg.Wait()
+		tiler.GenerateMetaData(*outputPath, wu.dataset, wu.file)
+	}
+	prog.finish()
+}
+
+// workUnit is the tile set for a single (dataset, file, zoom), materialized during
+// the pre-pass so it can be both counted toward the global total and processed.
+type workUnit struct {
+	dataset dataset.Dataset
+	file    dataset.File
+	z       int
+	tiles   []m.TileID
 }
