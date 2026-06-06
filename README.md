@@ -96,7 +96,7 @@ Usage of build/s57-tiler:
   -maxzoom int
         Max zoom (default 14)
   -minzoom int
-        Min zoom (default 14)
+        Min zoom (default 9)
   -out string
         Output directory for vector tiles (default "./static/charts")
 ```
