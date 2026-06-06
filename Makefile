@@ -18,7 +18,9 @@ build/s57-tiler-linux-amd64: $(GOFILES)
 	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" \
 		-o build/s57-tiler-linux-amd64 ./cmd/s57-tiler
 
-# Native Raspberry Pi / linux-arm64 build. Run on a 64-bit Pi with libgdal-dev installed.
+# Native linux/arm64 (aarch64) build — any 64-bit ARM Linux host (Raspberry Pi, AWS
+# Graviton, other SBCs/servers). Build on the target arch (or under emulation) with
+# libgdal-dev installed; this is a cgo build, not a cross-compile from x86.
 build/s57-tiler-linux-arm64: $(GOFILES)
 	CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w" \
 		-o build/s57-tiler-linux-arm64 ./cmd/s57-tiler
