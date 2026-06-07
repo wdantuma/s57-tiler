@@ -241,6 +241,17 @@ func (s *s57Tiler) getMvtFeatureType(geometry *gdal.Geometry) *vectortile.Tile_G
 	return &mvtGeomType
 }
 
+// internalS57Fields are S-57 record-bookkeeping fields the GDAL driver exposes on
+// every feature (record id, object label, version, agency, feature/spatial record
+// pointers). They carry no charting meaning, bloat every tile, and FFPT_RIND in
+// particular serializes as a malformed list string — so they are dropped rather
+// than emitted as MVT tags.
+var internalS57Fields = map[string]bool{
+	"RCID": true, "PRIM": true, "GRUP": true, "OBJL": true, "RVER": true,
+	"AGEN": true, "FIDN": true, "FIDS": true, "LNAM": true,
+	"LNAM_REFS": true, "FFPT_RIND": true,
+}
+
 func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tile m.TileID, tileBounds m.Extrema) *vectortile.Tile_Feature {
 	geom := feature.Geometry()
 	mvtFeature := vectortile.Tile_Feature{}
@@ -250,6 +261,9 @@ func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tile m.TileID, tileBounds
 		for i := 0; i < feature.FieldCount(); i++ {
 			fieldDef := feature.FieldDefinition(i)
 			key := fieldDef.Name()
+			if internalS57Fields[key] {
+				continue
+			}
 			var value interface{}
 			fieldType := fieldDef.Type()
 			vt := VT_STRING

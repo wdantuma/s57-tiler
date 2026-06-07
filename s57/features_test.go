@@ -82,6 +82,13 @@ func TestCoreFeatureClassesEmitted(t *testing.T) {
 			if tc.keyAttr != "" && !contains(layer.Keys, tc.keyAttr) {
 				t.Errorf("%s layer missing key attribute %s; keys=%v", tc.layer, tc.keyAttr, layer.Keys)
 			}
+
+			// Internal S-57 bookkeeping must never reach a tile.
+			for _, k := range layer.Keys {
+				if internalS57Fields[k] {
+					t.Errorf("%s layer leaked internal bookkeeping key %q", tc.layer, k)
+				}
+			}
 		})
 	}
 }
