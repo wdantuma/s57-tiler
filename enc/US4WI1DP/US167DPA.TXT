@@ -1,0 +1,122 @@
+NOAA ENC®
+
+NATIONAL OCEANIC AND ATMOSPHERIC ADMINISTRATION
+
+US4WI1DP - LAKE MICHIGAN - WHITEFISH BAY AND MILWAUKEE BAY, WI
+
+
+INDEX:
+
+NOTE A
+AUTHORITIES
+AIDS TO NAVIGATION
+WARNING - PRUDENT MARINER
+POLLUTION REPORTS
+SUPPLEMENTAL INFORMATION
+CAUTION - TEMPORARY CHANGES
+CAUTION - USE OF RADIO SIGNALS (LIMITATIONS)
+CAUTION - SUBMARINE PIPELINES AND CABLES
+CAUTION - QUALITY OF BATHYMETRIC DATA
+RADAR REFLECTORS
+CAUTION - LOW WATER DATUM
+WARNING - UNEXPLODED ORDNANCE
+NOAA WEATHER RADIO BROADCASTS
+WATER LEVELS, CURRENTS, AND TIDES
+PLANE OF REFERENCE OF THIS CHART
+COMMENTS REQUESTED
+ADDITIONAL INFORMATION
+SAILING COURSES
+BRIDGE AND OVERHEAD CABLES CLEARANCES
+ADMINISTRATION AREA
+
+
+NOTES:
+
+NOTE A
+Navigation regulations are published in Chapter 2, U.S. Coast Pilot 6. Additions or revisions to Chapter 2 are published in the Notice to Mariners. Information concerning the regulations may be obtained at the Office of the Commander, 9th Coast Guard District in Cleveland, Ohio or at the Office of the District Engineer, Corps of Engineers in Detroit, Michigan. Refer to charted regulation section numbers.
+
+
+AUTHORITIES
+Hydrography and topography by the National Ocean Service, Coast Survey, with additional data from the Corps of Engineers, Geological Survey, and U.S. Coast Guard.
+
+
+AIDS TO NAVIGATION
+Consult U.S. Coast Guard Light List for supplemental information concerning aids to navigation.
+
+
+WARNING - PRUDENT MARINER
+The prudent mariner will not rely solely on any single aid to navigation, particularly on floating aids. See U.S. Coast Guard Light List and U.S. Coast Pilot for details.
+
+
+POLLUTION REPORTS
+Report all spills of oil and hazardous substances to the National Response Center via 1-800-424-8802 (toll free), or to the nearest U.S. Coast Guard facility if telephone communication is impossible (33 CFR 153).
+
+
+SUPPLEMENTAL INFORMATION
+Consult U.S. Coast Pilot 6 for important supplemental information.
+
+
+CAUTION - TEMPORARY CHANGES
+Temporary changes or defects in aids to navigation are not indicated. See Local Notice to Mariners. During some winter months or when endangered by ice, certain aids to navigation are replaced by other types or removed. For details see U.S. Coast Guard Light List.
+
+
+CAUTION - USE OF RADIO SIGNALS (LIMITATIONS)
+Limitations on the use of radio signals as aids to marine navigation can be found in the U.S. Coast Guard Light Lists and National Geospatial-Intelligence Agency Publication 117. Radio direction-finder bearings to commercial broadcasting stations are subject to error and should be used with caution.
+
+
+CAUTION - SUBMARINE PIPELINES AND CABLES
+Additional uncharted submarine pipelines and submarine cables may exist within the area of this chart. Not all submarine pipelines and submarine cables are required to be buried, and those that were originally buried may have become exposed. Mariners should use extreme caution when operating vessels in depths of water comparable to their draft in areas where pipelines and cables may exist, and when anchoring, dragging, or trawling. Covered wells may be marked by lighted or unlighted buoys.
+
+
+CAUTION - QUALITY OF BATHYMETRIC DATA
+The areas represented by the object M_QUAL (Quality of data) are approximate due to generalizing for clarity. Caution is advised, particularly for nearshore navigation or voyage planning. M_QUAL represents areas of uniform quality of bathymetric data. The CATZOC (Category of zone of confidence in data) attribute of M_QUAL provides an assessment of the overall zone of confidence.
+
+
+RADAR REFLECTORS
+Radar reflectors have been placed on many floating aids to navigation. Individual radar reflector identification on these aids has been omitted from this chart.
+
+
+CAUTION - LOW WATER DATUM
+Due to periodic high water conditions in the Great Lakes, some features charted as visible at Low Water Datum may be submerged, particularly in the near shore areas. Mariners should proceed with caution.
+
+
+WARNING - UNEXPLODED ORDNANCE
+Unexploded ordnance may exist in this area. Anyone finding unexploded ordnance should notify the nearest U.S. Coast Guard or law enforcement facility.
+
+
+NOAA WEATHER RADIO BROADCASTS
+The NOAA Weather Radio stations listed below provide continuous weather broadcasts. The reception range is typically 20 to 40 nautical miles from the antenna site, but can be as much as 100 nautical miles for stations at high elevations.
+
+Milwaukee, WI		KEC-60		162.400 MHz
+Racine, WI		KZZ-76		162.450 MHz
+
+
+WATER LEVELS, CURRENTS, AND TIDES
+Real-time water levels, tide predictions, and tidal current predictions are available on the internet from NOAA's Center for Operational Oceanographic Products and Services (CO-OPS) at https://tidesandcurrents.noaa.gov/water_level_info.html and https://tidesandcurrents.noaa.gov/currents_info.html.
+
+
+PLANE OF REFERENCE OF THIS CHART
+Plane of Reference of this chart (Low Water Datum) 176.0 m/577.5 ft. Referred to mean water level at Rimouski, Quebec, International Great Lakes Datum (1985).
+
+
+COMMENTS REQUESTED
+NOAA encourages users to submit inquiries, discrepancies, or comments about this chart via NOAA's ASSIST tool at https://www.nauticalcharts.noaa.gov/customer-service/assist/.
+
+
+ADDITIONAL INFORMATION
+Additional information can be obtained at www.nauticalcharts.noaa.gov.
+
+
+SAILING COURSES
+Sailing courses are recommended by the Lake Carriers Association and the Chamber of Marine Commerce as voluntary guidance for course to steer with navigation safety and Collision Regulations always taking priority.
+
+
+BRIDGE AND OVERHEAD CABLES CLEARANCES
+When the water surface is above Low Water Datum, bridge and overhead clearances are reduced correspondingly. For clearances see U.S. Coast Pilot 6.
+
+
+ADMINISTRATION AREA 
+The entire extent of this ENC cell falls within the limits of an Administration Area. This area covers land, internal waters, and territorial sea.  The territorial sea is a maritime zone which the United States exercises sovereignty extending to the airspace as well as to its bed and subsoil.  For more information, please refer to the Coast Pilot.
+
+
+END OF FILE

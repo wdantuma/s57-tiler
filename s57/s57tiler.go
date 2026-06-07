@@ -232,7 +232,8 @@ func (s *s57Tiler) getMvtFeatureType(geometry *gdal.Geometry) *vectortile.Tile_G
 		mvtGeomType = vectortile.Tile_LINESTRING
 	case gdal.GT_Polygon: //, gdal.GT_MultiPolygon25D, gdal.GT_MultiPolygon, gdal.GT_Polygon25D:
 		mvtGeomType = vectortile.Tile_POLYGON
-	case gdal.GT_Point, gdal.GT_MultiPoint25D: //, gdal.GT_Point25D, gdal.GT_MultiPoint, gdal.GT_MultiPoint25D:
+	case gdal.GT_Point, gdal.GT_Point25D, gdal.GT_MultiPoint, gdal.GT_MultiPoint25D:
+		// GT_Point25D is what SOUNDG soundings become once SPLIT_MULTIPOINT is on.
 		mvtGeomType = vectortile.Tile_POINT
 	default:
 		mvtGeomType = vectortile.Tile_UNKNOWN
@@ -437,8 +438,12 @@ func (s *s57Tiler) GenerateTile(outPath string, file dataset.File, tile m.TileID
 		defer datasource.Destroy()
 		if layer.Bounds.Intersects(tileEnvelope) {
 			l := datasource.LayerByName(layerName)
+			// FeatureCount(false) returns (-1, false) for layers the S-57 driver
+			// can't count without a full scan (e.g. split SOUNDG). Treat "unknown"
+			// as "might have features" and let the spatial filter in GetFeatures
+			// decide, rather than skipping the layer outright.
 			c, ok := l.FeatureCount(false)
-			if ok && c > 0 {
+			if !ok || c > 0 {
 				features := s.GetFeatures(l, tile, bounds)
 				mvtLayer.Features = append(mvtLayer.Features, features...)
 			}
