@@ -252,6 +252,23 @@ var internalS57Fields = map[string]bool{
 	"LNAM_REFS": true, "FFPT_RIND": true,
 }
 
+// decodeListString turns the GDAL wire format for a multi-valued S-57 attribute
+// (e.g. a buoy's COLOUR, which the driver renders as "(2:1,4)") into a plain
+// comma-separated value ("1,4"), so list attributes are emitted uniformly whether
+// the driver types them as String/Integer/Real lists. It is defensive: anything
+// not in that shape is returned unchanged, and an empty list yields "" (dropped by
+// the caller's value != "" guard). FieldAsString is used rather than the typed list
+// getters because the binding's FieldAsStringList dereferences a NULL pointer for an
+// empty/unset list.
+func decodeListString(s string) string {
+	if strings.HasPrefix(s, "(") && strings.HasSuffix(s, ")") {
+		if i := strings.Index(s, ":"); i >= 0 {
+			return s[i+1 : len(s)-1]
+		}
+	}
+	return s
+}
+
 func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tile m.TileID, tileBounds m.Extrema) *vectortile.Tile_Feature {
 	geom := feature.Geometry()
 	mvtFeature := vectortile.Tile_Feature{}
@@ -269,9 +286,8 @@ func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tile m.TileID, tileBounds
 			vt := VT_STRING
 			if feature.IsFieldSet(i) {
 				switch fieldType {
-				case gdal.FT_StringList:
-					st := string(feature.FieldAsString(i))
-					value = st[strings.Index(st, ":")+1 : len(st)-1]
+				case gdal.FT_StringList, gdal.FT_IntegerList, gdal.FT_Integer64List, gdal.FT_RealList:
+					value = decodeListString(feature.FieldAsString(i))
 					break
 				case gdal.FT_Integer:
 					vt = VT_INT

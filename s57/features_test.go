@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/lukeroth/gdal"
@@ -89,6 +90,16 @@ func TestCoreFeatureClassesEmitted(t *testing.T) {
 					t.Errorf("%s layer leaked internal bookkeeping key %q", tc.layer, k)
 				}
 			}
+
+			// Multi-valued attributes (e.g. COLOUR) must be emitted as clean
+			// comma-separated values, not the driver's "(N:v,..)" wire format.
+			if contains(layer.Keys, "COLOUR") {
+				for _, v := range valuesForKey(layer, "COLOUR") {
+					if strings.ContainsAny(v, "(:)") {
+						t.Errorf("%s COLOUR value %q not cleanly decoded (list wire-format leaked)", tc.layer, v)
+					}
+				}
+			}
 		})
 	}
 }
@@ -168,4 +179,21 @@ func contains(ss []string, want string) bool {
 		}
 	}
 	return false
+}
+
+// valuesForKey returns the string values emitted for key across all features in
+// the layer.
+func valuesForKey(layer *vectortile.Tile_Layer, key string) []string {
+	var out []string
+	for _, f := range layer.Features {
+		for i := 0; i+1 < len(f.Tags); i += 2 {
+			if layer.Keys[f.Tags[i]] != key {
+				continue
+			}
+			if v := layer.Values[f.Tags[i+1]]; v != nil && v.StringValue != nil {
+				out = append(out, *v.StringValue)
+			}
+		}
+	}
+	return out
 }
