@@ -1,0 +1,133 @@
+NOAA ENC®
+
+NATIONAL OCEANIC AND ATMOSPHERIC ADMINISTRATION
+
+US5OLMCG - NISQUALLY REACH EAST
+
+
+INDEX:
+
+NOTE A
+AIDS TO NAVIGATION
+POLLUTION REPORTS
+CAUTION - USE OF RADIO SIGNALS (LIMITATIONS)
+SUPPLEMENTAL INFORMATION
+CAUTION - TEMPORARY CHANGES
+WARNING - PRUDENT MARINER
+ADDITIONAL INFORMATION
+AUTHORITIES
+ANCHORING STANDARDS OF CARE
+CATION - WARNING TO MARINERS
+CAUTION - QUALITY OF BATHYMETRIC DATA
+CAUTION - SUBMARINE PIPELINES AND CABLES
+COLREGS, 80.1395 (see note A)
+FISHING AND HUNTING STRUCTURES
+NOAA WEATHER RADIO BROADCASTS
+RACING BUOYS
+RADAR REFLECTORS
+REGULATED NAVIGATION AREA
+SECURITY BARRIERS
+VESSEL TRAFFIC SERVICES
+WATER LEVELS, CURRENTS, AND TIDES
+COMMENTS REQUESTED
+
+
+NOTES:
+
+NOTE A
+Navigation regulations are published in Chapter 2, U.S. Coast Pilot 10. Additions or revisions to Chapter 2 are published in the Notices to Mariners. Information concerning the regulations may be obtained at the Office of the Commander, 13th Coast Guard District in Seattle, WA or at the Office of the District Engineer, Corps of Engineers in Seattle, WA.
+Refer to charted regulation section numbers.
+
+
+AIDS TO NAVIGATION
+Consult U.S. Coast Guard Light List for supplemental information concerning aids to navigation.
+
+
+POLLUTION REPORTS
+Report all spills of oil and hazardous substances to the National Response Center via 1-800-424-8802 (toll free), or to the nearest U.S. Coast Guard facility if telephone communication is impossible (33 CFR 153).
+
+
+CAUTION - USE OF RADIO SIGNALS (LIMITATIONS)
+Limitations on the use of radio signals as aids to marine navigation can be found in the U.S. Coast Guard Light Lists and National Geospatial-Intelligence Agency Publication 117. Radio direction-finder bearings to commercial broadcasting stations are subject to error and should be used with caution.
+
+
+SUPPLEMENTAL INFORMATION
+Consult U.S. Coast Pilot 10 for important supplemental information.
+
+
+CAUTION - TEMPORARY CHANGES
+Temporary changes or defects in aids to navigation are not indicated. See Local Notice to Mariners.
+
+
+WARNING - PRUDENT MARINER
+The prudent mariner will not rely solely on any single aid to navigation, particularly on floating aids. See U.S. Coast Guard Light List and U.S. Coast Pilot for details.
+
+
+ADDITIONAL INFORMATION
+Additional information can be obtained at www.nauticalcharts.noaa.gov.
+
+
+AUTHORITIES
+Hydrography and topography by the National Ocean Service, Coast Survey, with additional data from the Corps of Engineers, Geological Survey, U.S. Coast Guard and Department of the Navy.
+
+
+ANCHORING STANDARDS OF CARE
+Anchoring Standards of Care have been established for this area through the Harbor Safety Plan. These Standards of Care supplement existing regulations with good marine practices for anchoring, and are separated into different weather categories. If your vessel does not have a copy of the Anchoring Standards of Care, you can download one at https://marexps.com/membership/puget-sound-harbor-safety-committee/ or contact the Marine Exchange of Puget Sound at (206) 443-3830.
+
+
+CATION - WARNING TO MARINERS
+Mariners are warned to stay clear of the protective riprap surrounding navigational light structures.
+
+
+CAUTION - QUALITY OF BATHYMETRIC DATA
+The areas represented by the object M_QUAL are approximate due to generalizing for clarity. Caution is advised, particularly for nearshore navigation or voyage planning. M_QUAL (Quality of data) represents areas of uniform quality of bathymetric data. The CATZOC (Category of zone of confidence in data) attribute of M_QUAL provides an assessment of the overall zone of confidence.
+
+
+CAUTION - SUBMARINE PIPELINES AND CABLES
+Additional uncharted submarine pipelines and submarine cables may exist within the area of this chart. Not all submarine pipelines and submarine cables are required to be buried, and those that were originally buried may have become exposed. Mariners should use extreme caution when operating vessels in depths of water comparable to their draft in areas where pipelines and cables may exist, and when anchoring, dragging, or trawling. Covered wells may be marked by lighted or unlighted buoys.
+
+
+COLREGS, 80.1395 (see note A)
+International Regulations for Preventing Collisions at Sea, 1972. The entire area of this chart falls seaward of the COLREGS Demarcation Line.
+
+
+FISHING AND HUNTING STRUCTURES
+Uncharted fish and wildlife harvesting devices and structures such as fish traps, pound nets, crab traps, and duck blinds, some submerged, may exist in the area of this chart, particularly in the near shore area. Mariners should proceed with caution.
+
+
+NOAA WEATHER RADIO BROADCASTS
+The NOAA Weather Radio stations listed below provide continuous weather broadcasts. The reception range is typically 20 to 40 nautical miles from the antenna site, but can be as much as 100 nautical miles for stations at high elevations.
+
+Seattle, WA			KHB-60	    	162.550 MHz
+Capitol Peak, WA		WXM-62		162.445 MHz
+
+
+RACING BUOYS
+Racing buoys within the limits of this chart are not shown hereon. Information may be obtained from the U.S. Coast Guard District Offices as racing and other private buoys are not all listed in the U.S. Coast Guard Light List.
+
+
+RADAR REFLECTORS
+Radar reflectors have been placed on many floating aids to navigation. Individual radar reflector identification on these aids has been omitted from this chart.
+
+
+REGULATED NAVIGATION AREA
+A Regulated Navigation Area has been established by the U.S. Coast Guard. Please see Chapter 2, U.S. Coast Pilot 10 or 33 CFR 165.1301 and 33 CFR 165.1303.
+
+
+SECURITY BARRIERS
+Floating security barriers have been installed at various U.S. Naval installations throughout Puget Sound. The barriers are marked by numerous flashing yellow (Fl Y 2s) Navy maintained lighted buoys and approximately mark the Restricted Areas surrounding the facility.
+
+
+VESSEL TRAFFIC SERVICES
+The U.S. Coast Guard operates a mandatory Vessel Traffic Services (VTS) system in the Puget Sound area. Vessel operating procedures and designated radiotelephone frequencies are published in 33 CFR 161, the U.S. Coast Pilot, and/or the VTS User's Manual. The entire area of the chart falls within the Vessel Traffic Services (VTS) system.
+
+
+WATER LEVELS, CURRENTS, AND TIDES
+Real-time water levels, tide predictions, and tidal current predictions are available on the internet from NOAA's Center for Operational Oceanographic Products and Services (CO-OPS) at https://tidesandcurrents.noaa.gov/water_level_info.html and https://tidesandcurrents.noaa.gov/currents_info.html.
+
+
+COMMENTS REQUESTED
+NOAA encourages users to submit inquiries, discrepancies, or comments about this chart via NOAA's ASSIST tool at https://www.nauticalcharts.noaa.gov/customer-service/assist/.
+
+
+END OF FILE
