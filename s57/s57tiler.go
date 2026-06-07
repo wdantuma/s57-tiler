@@ -195,6 +195,23 @@ func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry 
 	simplifiedGeometry := geometry.SimplifyPreservingTopology(tolerance)
 	defer simplifiedGeometry.Destroy()
 
+	// Polygons need ring-aware handling: a Polygon's sub-geometries are its rings
+	// (exterior + holes), but a MultiPolygon's sub-geometries are whole polygons.
+	// emitPolygonRings descends to the rings in either case, so multipolygons are no
+	// longer dropped and hole winding (ccw for rings after the first) stays correct.
+	if featureType == vectortile.Tile_POLYGON {
+		gt := simplifiedGeometry.Type()
+		if gt == gdal.GT_MultiPolygon || gt == gdal.GT_MultiPolygon25D {
+			for i := 0; i < simplifiedGeometry.GeometryCount(); i++ {
+				poly := simplifiedGeometry.Geometry(i)
+				mvtGeometry = append(mvtGeometry, s.emitPolygonRings(&poly, tileBounds)...)
+			}
+		} else {
+			mvtGeometry = append(mvtGeometry, s.emitPolygonRings(&simplifiedGeometry, tileBounds)...)
+		}
+		return mvtGeometry
+	}
+
 	geomcount := simplifiedGeometry.GeometryCount()
 	pointCount := simplifiedGeometry.PointCount()
 
@@ -206,8 +223,6 @@ func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry 
 				mvtGeometry = append(mvtGeometry, s.toMvtPointGeometry(&geom, tileBounds)...)
 			case vectortile.Tile_LINESTRING:
 				mvtGeometry = append(mvtGeometry, s.toMvtLinestringGeometry(&geom, tileBounds, false)...)
-			case vectortile.Tile_POLYGON:
-				mvtGeometry = append(mvtGeometry, s.toMvtPolygonGeometry(&geom, tileBounds, i > 0)...)
 			}
 		}
 	} else if pointCount > 0 {
@@ -216,21 +231,36 @@ func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry 
 			mvtGeometry = append(mvtGeometry, s.toMvtPointGeometry(&simplifiedGeometry, tileBounds)...)
 		case vectortile.Tile_LINESTRING:
 			mvtGeometry = append(mvtGeometry, s.toMvtLinestringGeometry(&simplifiedGeometry, tileBounds, false)...)
-		case vectortile.Tile_POLYGON:
-			mvtGeometry = append(mvtGeometry, s.toMvtPolygonGeometry(&simplifiedGeometry, tileBounds, false)...)
 		}
 	}
 
 	return mvtGeometry
 }
 
+// emitPolygonRings emits the exterior ring (i==0, clockwise) and any hole rings
+// (i>0, counter-clockwise) of a single polygon. A MultiPolygon is handled by
+// calling this once per member polygon. The rings==0 fallback covers a bare ring
+// that has no sub-geometries.
+func (s *s57Tiler) emitPolygonRings(poly *gdal.Geometry, tileBounds m.Extrema) []uint32 {
+	rings := poly.GeometryCount()
+	if rings == 0 {
+		return s.toMvtPolygonGeometry(poly, tileBounds, false)
+	}
+	out := make([]uint32, 0)
+	for i := 0; i < rings; i++ {
+		ring := poly.Geometry(i)
+		out = append(out, s.toMvtPolygonGeometry(&ring, tileBounds, i > 0)...)
+	}
+	return out
+}
+
 func (s *s57Tiler) getMvtFeatureType(geometry *gdal.Geometry) *vectortile.Tile_GeomType {
 	geomType := geometry.Type()
 	var mvtGeomType vectortile.Tile_GeomType
 	switch geomType {
-	case gdal.GT_LineString: //, gdal.GT_MultiLineString25D, gdal.GT_LineString25D, gdal.GT_MultiLineString:
+	case gdal.GT_LineString, gdal.GT_LineString25D, gdal.GT_MultiLineString, gdal.GT_MultiLineString25D:
 		mvtGeomType = vectortile.Tile_LINESTRING
-	case gdal.GT_Polygon: //, gdal.GT_MultiPolygon25D, gdal.GT_MultiPolygon, gdal.GT_Polygon25D:
+	case gdal.GT_Polygon, gdal.GT_Polygon25D, gdal.GT_MultiPolygon, gdal.GT_MultiPolygon25D:
 		mvtGeomType = vectortile.Tile_POLYGON
 	case gdal.GT_Point, gdal.GT_Point25D, gdal.GT_MultiPoint, gdal.GT_MultiPoint25D:
 		// GT_Point25D is what SOUNDG soundings become once SPLIT_MULTIPOINT is on.

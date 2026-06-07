@@ -181,6 +181,116 @@ func contains(ss []string, want string) bool {
 	return false
 }
 
+// --- #6 multi-/3D-geometry hardening (hermetic; the fixture has no multi-geoms) ---
+
+// TestGetMvtFeatureTypeMulti locks in that Multi* geometry variants classify to the
+// same MVT type as their single counterparts instead of being dropped as UNKNOWN.
+func TestGetMvtFeatureTypeMulti(t *testing.T) {
+	tiler := NewS57Tiler(nil, 9, 14)
+	cases := []struct {
+		wkt  string
+		want vectortile.Tile_GeomType
+	}{
+		{"POLYGON((0 0,0.01 0,0.01 0.01,0 0.01,0 0))", vectortile.Tile_POLYGON},
+		{"MULTIPOLYGON(((0 0,0.01 0,0.01 0.01,0 0.01,0 0)))", vectortile.Tile_POLYGON},
+		{"LINESTRING(0 0,0.01 0.01)", vectortile.Tile_LINESTRING},
+		{"MULTILINESTRING((0 0,0.01 0.01),(0.02 0.02,0.03 0.03))", vectortile.Tile_LINESTRING},
+	}
+	for _, c := range cases {
+		geom := wktGeom(t, c.wkt)
+		got := tiler.getMvtFeatureType(&geom)
+		geom.Destroy()
+		if got == nil || *got != c.want {
+			t.Errorf("getMvtFeatureType(%q) = %v, want %v", c.wkt, got, c.want)
+		}
+	}
+}
+
+// TestMultiPolygonEmitted guards the MultiPolygon path: previously a MultiPolygon
+// (whose parts are polygons, not rings) produced empty geometry and was dropped.
+// Two polygons, the first with a hole → three rings, so three MoveTo commands.
+func TestMultiPolygonEmitted(t *testing.T) {
+	const wkt = "MULTIPOLYGON(" +
+		"((-122.72 47.10,-122.70 47.10,-122.70 47.12,-122.72 47.12,-122.72 47.10)," +
+		"(-122.715 47.105,-122.705 47.105,-122.705 47.115,-122.715 47.115,-122.715 47.105))," +
+		"((-122.69 47.10,-122.67 47.10,-122.67 47.12,-122.69 47.12,-122.69 47.10)))"
+	mf := mvtFeatureFromWKT(t, wkt, -122.70, 47.11)
+	if mf == nil {
+		t.Fatal("multipolygon was dropped (toMvtFeature returned nil)")
+	}
+	if mf.Type == nil || *mf.Type != vectortile.Tile_POLYGON {
+		t.Errorf("type = %v, want Tile_POLYGON", mf.Type)
+	}
+	if len(mf.Geometry) == 0 {
+		t.Fatal("multipolygon produced empty geometry")
+	}
+	if got := countCommands(mf.Geometry, 1); got != 3 {
+		t.Errorf("ring count (MoveTo commands) = %d, want 3", got)
+	}
+}
+
+// TestMultiLineStringEmitted guards the MultiLineString path: two parts → two MoveTo.
+func TestMultiLineStringEmitted(t *testing.T) {
+	const wkt = "MULTILINESTRING(" +
+		"(-122.71 47.10,-122.70 47.11,-122.69 47.12)," +
+		"(-122.685 47.10,-122.675 47.11))"
+	mf := mvtFeatureFromWKT(t, wkt, -122.69, 47.11)
+	if mf == nil {
+		t.Fatal("multilinestring was dropped (toMvtFeature returned nil)")
+	}
+	if mf.Type == nil || *mf.Type != vectortile.Tile_LINESTRING {
+		t.Errorf("type = %v, want Tile_LINESTRING", mf.Type)
+	}
+	if got := countCommands(mf.Geometry, 1); got != 2 {
+		t.Errorf("part count (MoveTo commands) = %d, want 2", got)
+	}
+}
+
+func wktGeom(t *testing.T, wkt string) gdal.Geometry {
+	t.Helper()
+	srs := gdal.CreateSpatialReference("")
+	srs.FromEPSG(4326)
+	g, err := gdal.CreateFromWKT(wkt, srs)
+	if err != nil {
+		t.Fatalf("CreateFromWKT(%q): %v", wkt, err)
+	}
+	return g
+}
+
+func mvtFeatureFromWKT(t *testing.T, wkt string, centerLon, centerLat float64) *vectortile.Tile_Feature {
+	t.Helper()
+	fd := gdal.CreateFeatureDefinition("TEST")
+	feat := fd.Create()
+	defer feat.Destroy()
+	geom := wktGeom(t, wkt)
+	feat.SetGeometry(geom)
+	geom.Destroy()
+
+	tiler := NewS57Tiler(nil, 9, 14)
+	tiler.startLayer()
+	tile := m.Tile(centerLon, centerLat, 12)
+	return tiler.toMvtFeature(&feat, tile, m.Bounds(tile))
+}
+
+// countCommands walks an MVT geometry command stream and counts commands with the
+// given id (1=MoveTo, 2=LineTo, 7=ClosePath). Each polygon ring and each line part
+// begins with exactly one MoveTo, so the MoveTo count equals the ring/part count.
+func countCommands(geom []uint32, cmdID uint32) int {
+	n, i := 0, 0
+	for i < len(geom) {
+		cmd := geom[i] & 0x7
+		count := int(geom[i] >> 3)
+		i++
+		if cmd == cmdID {
+			n++
+		}
+		if cmd == 1 || cmd == 2 { // MoveTo / LineTo carry count coordinate pairs
+			i += count * 2
+		}
+	}
+	return n
+}
+
 // valuesForKey returns the string values emitted for key across all features in
 // the layer.
 func valuesForKey(layer *vectortile.Tile_Layer, key string) []string {
