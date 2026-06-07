@@ -146,7 +146,7 @@ func firstFeatureCoord(file *dataset.File, layerName string) (float64, float64, 
 // min/max (those only affect metadata).
 func findLayerInTiles(t *testing.T, datasets []dataset.Dataset, file *dataset.File, lon, lat float64, layerName string) *vectortile.Tile_Layer {
 	t.Helper()
-	tiler := NewS57Tiler(datasets, 9, 14)
+	tiler := NewS57Tiler(datasets)
 	tmp := t.TempDir()
 	for z := 16; z >= 9; z-- {
 		tile := m.Tile(lon, lat, z)
@@ -186,7 +186,7 @@ func contains(ss []string, want string) bool {
 // TestGetMvtFeatureTypeMulti locks in that Multi* geometry variants classify to the
 // same MVT type as their single counterparts instead of being dropped as UNKNOWN.
 func TestGetMvtFeatureTypeMulti(t *testing.T) {
-	tiler := NewS57Tiler(nil, 9, 14)
+	tiler := NewS57Tiler(nil)
 	cases := []struct {
 		wkt  string
 		want vectortile.Tile_GeomType
@@ -266,7 +266,7 @@ func mvtFeatureFromWKT(t *testing.T, wkt string, centerLon, centerLat float64) *
 	feat.SetGeometry(geom)
 	geom.Destroy()
 
-	tiler := NewS57Tiler(nil, 9, 14)
+	tiler := NewS57Tiler(nil)
 	tiler.startLayer()
 	tile := m.Tile(centerLon, centerLat, 12)
 	return tiler.toMvtFeature(&feat, tile, m.Bounds(tile))

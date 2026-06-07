@@ -20,7 +20,7 @@ const sampleENC = "../enc"
 // soundings become once SPLIT_MULTIPOINT is enabled) map to the POINT geometry
 // type instead of being dropped as UNKNOWN.
 func TestGetMvtFeatureTypePoint25D(t *testing.T) {
-	tiler := NewS57Tiler(nil, 9, 14)
+	tiler := NewS57Tiler(nil)
 
 	geom := gdal.Create(gdal.GT_Point25D)
 	defer geom.Destroy()
@@ -79,7 +79,7 @@ func TestSoundingsEmittedWithDepth(t *testing.T) {
 	// Soundings carry SCAMIN, so they only appear once the map scale is fine
 	// enough. Try finer zooms first and use the first tile that emits SOUNDG,
 	// rather than hard-coding a zoom that may be too coarse for a given cell.
-	tiler := NewS57Tiler(datasets, 9, 14)
+	tiler := NewS57Tiler(datasets)
 	tmp := t.TempDir()
 
 	var soundg *vectortile.Tile_Layer
@@ -187,7 +187,7 @@ func TestDryingHeightsNegativeDepthPreserved(t *testing.T) {
 
 	const zoom = 14
 	tile := m.Tile(lon, lat, zoom)
-	tiler := NewS57Tiler(datasets, 9, 14)
+	tiler := NewS57Tiler(datasets)
 	tmp := t.TempDir()
 	tiler.GenerateTile(tmp, *dryFile, tile)
 
@@ -255,7 +255,7 @@ func TestNegativeSoundingDepthPreserved(t *testing.T) {
 	geom.Destroy()
 	feat.SetFieldFloat64(feat.FieldIndex("DEPTH"), depth)
 
-	tiler := NewS57Tiler(nil, 9, 14)
+	tiler := NewS57Tiler(nil)
 	tiler.startLayer()
 	tile := m.Tile(lon, lat, 12)
 	mf := tiler.toMvtFeature(&feat, tile, m.Bounds(tile))

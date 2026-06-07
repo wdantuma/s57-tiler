@@ -40,6 +40,15 @@ func main() {
 		*workers = 1
 	}
 
+	// Honor explicit -minzoom/-maxzoom; otherwise the zoom range is derived per cell
+	// from its S-57 usage band (overview→berthing) in the pre-pass below.
+	userSetZoom := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "minzoom" || f.Name == "maxzoom" {
+			userSetZoom = true
+		}
+	})
+
 	if !*debug {
 		os.Setenv("CPL_LOG", os.DevNull) // supress gdal errors
 	}
@@ -99,7 +108,7 @@ func main() {
 		}
 	}
 
-	tiler := s57.NewS57Tiler(datasets, *minzoom, *maxzoom)
+	tiler := s57.NewS57Tiler(datasets)
 
 	// Pre-pass: compute the tile set for every (dataset, file, zoom) up front so
 	// progress can be reported against a single global total with an ETA. Tile IDs
@@ -107,9 +116,13 @@ func main() {
 	fmt.Println("Scanning…")
 	var work []workUnit
 	var grandTotal int64
-	for _, dataset := range datasets {
-		for _, file := range dataset.Files {
-			for z := *minzoom; z <= *maxzoom; z++ {
+	for _, ds := range datasets {
+		for _, file := range ds.Files {
+			fminzoom, fmaxzoom := *minzoom, *maxzoom
+			if !userSetZoom && tile == nil && bounds == nil {
+				fminzoom, fmaxzoom = dataset.BandZoom(dataset.UsageBand(file))
+			}
+			for z := fminzoom; z <= fmaxzoom; z++ {
 				var tiles map[string]m.TileID
 				if tile != nil {
 					tiles = map[string]m.TileID{"tile": *tile}
@@ -123,7 +136,7 @@ func main() {
 				for _, t := range tiles {
 					ids = append(ids, t)
 				}
-				work = append(work, workUnit{dataset: dataset, file: file, z: z, tiles: ids})
+				work = append(work, workUnit{dataset: ds, file: file, z: z, tiles: ids, minzoom: fminzoom, maxzoom: fmaxzoom})
 				grandTotal += int64(len(ids))
 			}
 		}
@@ -142,7 +155,7 @@ func main() {
 				defer wg.Done()
 				// Per-worker tiler: GenerateTile mutates per-call state
 				// (keysMap/values/lastx/lasty) so instances cannot be shared.
-				workerTiler := s57.NewS57Tiler(datasets, *minzoom, *maxzoom)
+				workerTiler := s57.NewS57Tiler(datasets)
 				for tile := range jobs {
 					workerTiler.GenerateTile(*outputPath, wu.file, tile)
 					prog.inc()
@@ -154,7 +167,7 @@ func main() {
 		}
 		close(jobs)
 		wg.Wait()
-		tiler.GenerateMetaData(*outputPath, wu.dataset, wu.file)
+		tiler.GenerateMetaData(*outputPath, wu.dataset, wu.file, wu.minzoom, wu.maxzoom)
 	}
 	prog.finish()
 }
@@ -166,4 +179,6 @@ type workUnit struct {
 	file    dataset.File
 	z       int
 	tiles   []m.TileID
+	minzoom int
+	maxzoom int
 }
