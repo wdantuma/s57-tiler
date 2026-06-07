@@ -65,3 +65,14 @@ Build with the bundled Makefile:
 | `make darwin-arm64` | macOS Apple Silicon (M1 baseline, runs on all M-series) |
 | `make linux-arm64` | 64-bit ARM Linux (Raspberry Pi, Graviton, other SBCs) |
 | `make docker-buildx` | Multi-arch Docker image (linux/amd64 + linux/arm64) |
+
+## Testing & benchmarks
+
+```bash
+make test    # unit tests (needs the bundled enc/ fixture + GDAL)
+make bench   # performance benchmarks over the tiling hot path
+```
+
+Performance is benchmarked to catch regressions. See
+[docs/benchmarking.md](docs/benchmarking.md) for the suite, how to compare two runs
+with `benchstat`, and the CI trend tracking.
