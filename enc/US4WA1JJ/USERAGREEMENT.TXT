@@ -1,0 +1,43 @@
+USER AGREEMENT 
+  
+By using the website and the NOAA Electronic Navigational Charts (NOAA ENCs®) distributed there, you acknowledge that you have read, understood, and accepted the terms and conditions stated in this User Agreement.  NOAA reserves the right to change this Agreement at any time and without notice.  Your use of the website and/or the Electronic Navigational Charts available there shall constitute your agreement to be bound by any this Agreement and any changes.  
+  
+1. Description of NOAA Electronic Navigational Charts (NOAA ENCs®)  
+  
+The NOAA ENCs distributed here are a geo-referenced database(s) of NOAA nautical chart features and their attributes, published by NOAA in the format of the International Hydrographic Organization S-57 Standard, "IHO Transfer Standard for Digital Hydrographic Data." NOAA updates the ENCs for Notice to Mariners on a weekly basis (timing of their availability is not guaranteed). NOAA ENCs are an official product of NOAA.  
+  
+2. Permitted Use 
+  
+The NOAA ENCs are intended for navigational use. They are intended to be used in their electronic form only. You may download, use, and redistribute them without restriction, and without payment to NOAA, except as noted herein.  
+  
+They may be used to meet federal chart carriage regulations published in the Code of Federal Regulations. On November 15, 2005, the regulations were as stated below. These regulations may change, and mariners are advised to check the Code of Federal Regulations for their current status.  
+  
+1) On May 2, 2001, the United States Coast Guard amended the United States chart carriage regulations to permit government vessels to use electronic charting and navigation systems in lieu of paper charts.  
+  
+2) On July 1, 2002, the International Maritime Organization's (IMO) amendments to chapter V of the International Convention for the Safety of Life at Sea (SOLAS) became effective after being accepted by the Contracting Governments to SOLAS (Jan 2002) and the IMOs Maritime Safety Committee (Dec 2000). These amendments, in part, allowed an electronic chart display system (ECDIS) using ENCs to be accepted as meeting chart carriage requirements of SOLAS chapter V.  
+  
+3) On August 15, 2002, the United States Coast Guard issued a statement of policy to bring its regulations into agreement with SOLAS Chapter V (as amended by the changes taking effect July 1, 2002). The policy statement said that, if a ship has an approved ECDIS installed according to SOLAS, Chapter V, the ECDIS will be considered as meeting the ship's nautical chart carriage regulations. The ships that are affected are:  
+a. U.S.-flagged ships of 150 or more gross tons that engage on international voyages.  
+b. U.S.-flagged ships certificated solely for service on the Great Lakes and the St. Lawrence River.  
+c. Foreign-flag ships to which SOLAS, Chapter V, applies that are operating on the navigable waters of the United States.  
+This policy is not applicable to U.S.-flag ships engaged only on domestic voyages. These ships must continue to comply with existing navigation equipment requirements until the chart carriage regulations are formally amended.  
+  
+3. Limitations on Use  
+  
+NOAA ENCs® may be redistributed, but redistributed NOAA ENCs are NOT considered official NOAA ENCs, and do not meet federal chart carriage regulations for regulated vessels unless redistributed by a "Certified NOAA ENC Distributor" or by a "Certified NOAA ENC Value Added Distributor". Click http://chartmaker.ncd.noaa.gov/mcd/enc/fedreg_encrule.htm for further information on ENC Distributorships.  
+  
+Copying of the NOAA ENCs to any other server or location for further distribution is discouraged unless the following guidelines are followed: 1) this User Agreement is displayed and accepted by anyone accessing the NOAA ENCs, and 2) a reference to this Web site is included so that anyone accessing the NOAA ENCs is advised of their origin.  
+  
+If these NOAA ENC's are incorporated into any other product in a form other than as provided by NOAA, the producer of that product assumes full liability and must adhere to conditions described in the paragraph above concerning copying.  
+  
+4. Warnings  
+  
+Weekly updates to the ENCs are done on a "best efforts" basis. The timing of their availability is not guaranteed. You are responsible for ensuring that your ENCs are the most current edition and that the most recent updates have been applied.  
+  
+While NOAA has accuracy standards for each step in the data collection and chart production process, much of the depth information found on NOAA charts is based on surveys conducted before 1940, the shoreline is more than 20 years old, and paper charts used to be compiled manually. For more information regarding the accuracy of electronic charts, click http://chartmaker.ncd.noaa.gov/mcd/enc/encartcl.htm.  
+  
+5. Trademarks and Copyright  
+  
+"NOAA®" and the NOAA® emblem are registered trademarks of the National Oceanic and Atmospheric Administration.  
+  
+NOAA ENC® is a registered trademark of the National Oceanic and Atmospheric Administration.
