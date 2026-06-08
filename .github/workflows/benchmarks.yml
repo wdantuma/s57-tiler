@@ -31,7 +31,7 @@ jobs:
           apt-get install -y --no-install-recommends \
             libgdal-dev pkg-config build-essential git ca-certificates
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Mark the workspace safe for git
         # The container runs as root but the checkout is owned by a different UID, so
@@ -39,7 +39,7 @@ jobs:
         # stamp VCS info into the binary. Trusting the path fixes all go commands.
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: '1.22'
           cache: true
