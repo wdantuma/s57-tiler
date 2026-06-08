@@ -42,5 +42,11 @@ jobs:
       - name: Build
         run: go build ./...
 
+      - name: Verify the test fixture is present
+        # The s57 tests t.Skip when the bundled enc/ fixture is missing, which would
+        # leave this job green without actually exercising the code. Fail instead, so a
+        # passing check guarantees the suite ran.
+        run: test -f enc/CATALOG.031 || { echo "enc/ fixture missing — s57 tests would skip"; exit 1; }
+
       - name: Test
         run: go test ./... -count=1
