@@ -462,7 +462,13 @@ func getBounds(file dataset.File) []float32 {
 func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset, file dataset.File, minZoom int, maxZoom int) {
 	path := filepath.Join(outPath, file.Id, "metadata.json")
 	bounds := getBounds(file)
-	metaData := charts.ChartMetaData{Id: file.Id, Name: file.Id, Description: dataset.Description, Created: time.Now().UTC(), Type: "S-57", Format: "pbf", MinZoom: minZoom, MaxZoom: maxZoom, Bounds: bounds}
+	// Fall back to the cell's catalog long-name when the dataset has no description,
+	// so Freeboard shows a human-readable name instead of just the cell id.
+	description := dataset.Description
+	if description == "" {
+		description = file.Title
+	}
+	metaData := charts.ChartMetaData{Id: file.Id, Name: file.Id, Description: description, Created: time.Now().UTC(), Type: "S-57", Format: "pbf", MinZoom: minZoom, MaxZoom: maxZoom, Bounds: bounds}
 
 	out, _ := json.Marshal(metaData)
 	if _, err := os.Stat(path); os.IsNotExist(err) {

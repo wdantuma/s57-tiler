@@ -33,6 +33,7 @@ type Layer struct {
 type File struct {
 	Id     string
 	Path   string
+	Title  string
 	Layers map[string]Layer
 }
 
@@ -125,9 +126,17 @@ func GetS57Datasets(path string) ([]Dataset, error) {
 							parts = strings.Split(filePath, string(os.PathSeparator))
 							datasource := gdal.OpenDataSource(filePath, 0)
 							defer datasource.Destroy()
+							// The catalog's LFIL ("long file name") subfield carries the
+							// cell's human-readable title (e.g. "Anacortes and Vicinity, WA"),
+							// used as the chart Description. Absent in some older downloads.
+							title := ""
+							if len(d.Fields[1].SubFields) > 3 {
+								title = strings.TrimSpace(fmt.Sprintf("%s", d.Fields[1].SubFields[3]))
+							}
 							file := File{
 								Id:     parts[len(parts)-1][0 : len(parts[len(parts)-1])-4],
 								Path:   filePath,
+								Title:  title,
 								Layers: getLayers(datasource),
 							}
 							dataset.Files = append(dataset.Files, file)
