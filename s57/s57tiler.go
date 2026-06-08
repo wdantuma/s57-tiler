@@ -43,8 +43,6 @@ type Value struct {
 }
 
 type s57Tiler struct {
-	minZoom   int
-	maxZoom   int
 	transform gdal.CoordinateTransform
 	datasets  []dataset.Dataset
 	valuesMap map[string]uint32
@@ -55,13 +53,13 @@ type s57Tiler struct {
 	lasty     int32
 }
 
-func NewS57Tiler(datasets []dataset.Dataset, minzoom int, maxzoom int) *s57Tiler {
+func NewS57Tiler(datasets []dataset.Dataset) *s57Tiler {
 	src := gdal.CreateSpatialReference("")
 	src.FromEPSG(4326)
 	dst := gdal.CreateSpatialReference("")
 	dst.FromEPSG(3857)
 
-	return &s57Tiler{transform: gdal.CreateCoordinateTransform(src, dst), datasets: datasets, minZoom: minzoom, maxZoom: maxzoom}
+	return &s57Tiler{transform: gdal.CreateCoordinateTransform(src, dst), datasets: datasets}
 }
 
 func (s *s57Tiler) startLayer() {
@@ -195,6 +193,23 @@ func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry 
 	simplifiedGeometry := geometry.SimplifyPreservingTopology(tolerance)
 	defer simplifiedGeometry.Destroy()
 
+	// Polygons need ring-aware handling: a Polygon's sub-geometries are its rings
+	// (exterior + holes), but a MultiPolygon's sub-geometries are whole polygons.
+	// emitPolygonRings descends to the rings in either case, so multipolygons are no
+	// longer dropped and hole winding (ccw for rings after the first) stays correct.
+	if featureType == vectortile.Tile_POLYGON {
+		gt := simplifiedGeometry.Type()
+		if gt == gdal.GT_MultiPolygon || gt == gdal.GT_MultiPolygon25D {
+			for i := 0; i < simplifiedGeometry.GeometryCount(); i++ {
+				poly := simplifiedGeometry.Geometry(i)
+				mvtGeometry = append(mvtGeometry, s.emitPolygonRings(&poly, tileBounds)...)
+			}
+		} else {
+			mvtGeometry = append(mvtGeometry, s.emitPolygonRings(&simplifiedGeometry, tileBounds)...)
+		}
+		return mvtGeometry
+	}
+
 	geomcount := simplifiedGeometry.GeometryCount()
 	pointCount := simplifiedGeometry.PointCount()
 
@@ -206,8 +221,6 @@ func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry 
 				mvtGeometry = append(mvtGeometry, s.toMvtPointGeometry(&geom, tileBounds)...)
 			case vectortile.Tile_LINESTRING:
 				mvtGeometry = append(mvtGeometry, s.toMvtLinestringGeometry(&geom, tileBounds, false)...)
-			case vectortile.Tile_POLYGON:
-				mvtGeometry = append(mvtGeometry, s.toMvtPolygonGeometry(&geom, tileBounds, i > 0)...)
 			}
 		}
 	} else if pointCount > 0 {
@@ -216,21 +229,36 @@ func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry 
 			mvtGeometry = append(mvtGeometry, s.toMvtPointGeometry(&simplifiedGeometry, tileBounds)...)
 		case vectortile.Tile_LINESTRING:
 			mvtGeometry = append(mvtGeometry, s.toMvtLinestringGeometry(&simplifiedGeometry, tileBounds, false)...)
-		case vectortile.Tile_POLYGON:
-			mvtGeometry = append(mvtGeometry, s.toMvtPolygonGeometry(&simplifiedGeometry, tileBounds, false)...)
 		}
 	}
 
 	return mvtGeometry
 }
 
+// emitPolygonRings emits the exterior ring (i==0, clockwise) and any hole rings
+// (i>0, counter-clockwise) of a single polygon. A MultiPolygon is handled by
+// calling this once per member polygon. The rings==0 fallback covers a bare ring
+// that has no sub-geometries.
+func (s *s57Tiler) emitPolygonRings(poly *gdal.Geometry, tileBounds m.Extrema) []uint32 {
+	rings := poly.GeometryCount()
+	if rings == 0 {
+		return s.toMvtPolygonGeometry(poly, tileBounds, false)
+	}
+	out := make([]uint32, 0)
+	for i := 0; i < rings; i++ {
+		ring := poly.Geometry(i)
+		out = append(out, s.toMvtPolygonGeometry(&ring, tileBounds, i > 0)...)
+	}
+	return out
+}
+
 func (s *s57Tiler) getMvtFeatureType(geometry *gdal.Geometry) *vectortile.Tile_GeomType {
 	geomType := geometry.Type()
 	var mvtGeomType vectortile.Tile_GeomType
 	switch geomType {
-	case gdal.GT_LineString: //, gdal.GT_MultiLineString25D, gdal.GT_LineString25D, gdal.GT_MultiLineString:
+	case gdal.GT_LineString, gdal.GT_LineString25D, gdal.GT_MultiLineString, gdal.GT_MultiLineString25D:
 		mvtGeomType = vectortile.Tile_LINESTRING
-	case gdal.GT_Polygon: //, gdal.GT_MultiPolygon25D, gdal.GT_MultiPolygon, gdal.GT_Polygon25D:
+	case gdal.GT_Polygon, gdal.GT_Polygon25D, gdal.GT_MultiPolygon, gdal.GT_MultiPolygon25D:
 		mvtGeomType = vectortile.Tile_POLYGON
 	case gdal.GT_Point, gdal.GT_Point25D, gdal.GT_MultiPoint, gdal.GT_MultiPoint25D:
 		// GT_Point25D is what SOUNDG soundings become once SPLIT_MULTIPOINT is on.
@@ -239,6 +267,34 @@ func (s *s57Tiler) getMvtFeatureType(geometry *gdal.Geometry) *vectortile.Tile_G
 		mvtGeomType = vectortile.Tile_UNKNOWN
 	}
 	return &mvtGeomType
+}
+
+// internalS57Fields are S-57 record-bookkeeping fields the GDAL driver exposes on
+// every feature (record id, object label, version, agency, feature/spatial record
+// pointers). They carry no charting meaning, bloat every tile, and FFPT_RIND in
+// particular serializes as a malformed list string — so they are dropped rather
+// than emitted as MVT tags.
+var internalS57Fields = map[string]bool{
+	"RCID": true, "PRIM": true, "GRUP": true, "OBJL": true, "RVER": true,
+	"AGEN": true, "FIDN": true, "FIDS": true, "LNAM": true,
+	"LNAM_REFS": true, "FFPT_RIND": true,
+}
+
+// decodeListString turns the GDAL wire format for a multi-valued S-57 attribute
+// (e.g. a buoy's COLOUR, which the driver renders as "(2:1,4)") into a plain
+// comma-separated value ("1,4"), so list attributes are emitted uniformly whether
+// the driver types them as String/Integer/Real lists. It is defensive: anything
+// not in that shape is returned unchanged, and an empty list yields "" (dropped by
+// the caller's value != "" guard). FieldAsString is used rather than the typed list
+// getters because the binding's FieldAsStringList dereferences a NULL pointer for an
+// empty/unset list.
+func decodeListString(s string) string {
+	if strings.HasPrefix(s, "(") && strings.HasSuffix(s, ")") {
+		if i := strings.Index(s, ":"); i >= 0 {
+			return s[i+1 : len(s)-1]
+		}
+	}
+	return s
 }
 
 func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tile m.TileID, tileBounds m.Extrema) *vectortile.Tile_Feature {
@@ -250,14 +306,16 @@ func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tile m.TileID, tileBounds
 		for i := 0; i < feature.FieldCount(); i++ {
 			fieldDef := feature.FieldDefinition(i)
 			key := fieldDef.Name()
+			if internalS57Fields[key] {
+				continue
+			}
 			var value interface{}
 			fieldType := fieldDef.Type()
 			vt := VT_STRING
 			if feature.IsFieldSet(i) {
 				switch fieldType {
-				case gdal.FT_StringList:
-					st := string(feature.FieldAsString(i))
-					value = st[strings.Index(st, ":")+1 : len(st)-1]
+				case gdal.FT_StringList, gdal.FT_IntegerList, gdal.FT_Integer64List, gdal.FT_RealList:
+					value = decodeListString(feature.FieldAsString(i))
 					break
 				case gdal.FT_Integer:
 					vt = VT_INT
@@ -401,10 +459,10 @@ func getBounds(file dataset.File) []float32 {
 	return bounds
 }
 
-func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset, file dataset.File) {
+func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset, file dataset.File, minZoom int, maxZoom int) {
 	path := filepath.Join(outPath, file.Id, "metadata.json")
 	bounds := getBounds(file)
-	metaData := charts.ChartMetaData{Id: file.Id, Name: file.Id, Description: dataset.Description, Created: time.Now().UTC(), Type: "S-57", Format: "pbf", MinZoom: s.minZoom, MaxZoom: s.maxZoom, Bounds: bounds}
+	metaData := charts.ChartMetaData{Id: file.Id, Name: file.Id, Description: dataset.Description, Created: time.Now().UTC(), Type: "S-57", Format: "pbf", MinZoom: minZoom, MaxZoom: maxZoom, Bounds: bounds}
 
 	out, _ := json.Marshal(metaData)
 	if _, err := os.Stat(path); os.IsNotExist(err) {

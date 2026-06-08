@@ -5,7 +5,7 @@ IMAGE ?= wdantuma/s57-tiler:latest
 # rebuild when code changes instead of being treated as permanently up-to-date.
 GOFILES := $(shell find . -name '*.go') go.mod go.sum
 
-.PHONY: build linux-arm64 darwin-arm64 docker-buildx runs57tiler clean
+.PHONY: build linux-arm64 darwin-arm64 docker-buildx runs57tiler test bench clean
 
 # Native host build (links the locally-installed GDAL via cgo/pkg-config).
 build/s57-tiler: $(GOFILES)
@@ -50,6 +50,17 @@ docker-buildx:
 
 runs57tiler: build/s57-tiler
 	./build/s57-tiler
+
+# Run unit tests (needs the bundled enc/ fixture and a working GDAL toolchain).
+test:
+	go test ./...
+
+# Run performance benchmarks. allocs/op and B/op are the stable, machine-independent
+# regression signals; ns/op is directional. For a before/after comparison capture two
+# runs and diff them with benchstat:
+#   make bench | tee /tmp/new.txt   # then: benchstat /tmp/old.txt /tmp/new.txt
+bench:
+	go test -run='^$$' -bench=. -benchmem -count=10 ./s57/...
 
 clean:
 	go clean

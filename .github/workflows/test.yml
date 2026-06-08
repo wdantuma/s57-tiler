@@ -1,0 +1,52 @@
+name: tests
+
+# Runs the unit tests on every pull request (and on master) so the suite can be
+# required as a pre-merge status check. Mirrors the benchmark job's setup: the cgo
+# binding builds via `#cgo pkg-config: gdal`, so it needs Debian's libgdal-dev
+# (headers + gdal.pc) from a pinned ubuntu:24.04 container, and the tests use the
+# committed enc/ fixture.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
+    steps:
+      # Installed first because actions/checkout needs git, and cgo needs GDAL.
+      - name: Install GDAL and build tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            libgdal-dev pkg-config build-essential git ca-certificates
+
+      - uses: actions/checkout@v6
+
+      - name: Mark the workspace safe for git
+        # The container runs as root but the checkout is owned by a different UID, so
+        # git would otherwise abort with "dubious ownership" (exit 128) when the go
+        # toolchain stamps VCS info into binaries.
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Build
+        run: go build ./...
+
+      - name: Verify the test fixture is present
+        # The s57 tests t.Skip when the bundled enc/ fixture is missing, which would
+        # leave this job green without actually exercising the code. Fail instead, so a
+        # passing check guarantees the suite ran.
+        run: test -f enc/CATALOG.031 || { echo "enc/ fixture missing — s57 tests would skip"; exit 1; }
+
+      - name: Test
+        run: go test ./... -count=1

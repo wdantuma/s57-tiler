@@ -1,0 +1,164 @@
+NOAA ENC®
+
+NATIONAL OCEANIC AND ATMOSPHERIC ADMINISTRATION
+
+US4WA1JJ - ANACORTES AND VICINITY, WA
+
+
+INDEX:
+
+NOTE A
+AIDS TO NAVIGATION
+POLLUTION REPORTS
+CAUTION - USE OF RADIO SIGNALS (LIMITATIONS)
+SUPPLEMENTAL INFORMATION
+CAUTION - TEMPORARY CHANGES
+WARNING - PRUDENT MARINER
+ADDITIONAL INFORMATION
+AUTHORITIES
+ADMINISTRATION AREA
+CANADIAN WEATHER RADIO BROADCASTS
+CAUTION - COOPERATIVE VESSEL TRAFFIC SERVICES
+CAUTION - QUALITY OF BATHYMETRIC DATA
+CAUTION - SUBMARINE PIPELINES AND CABLES
+CAUTION - USACE HYDROGRAPHIC SURVEYS
+CAUTION - WASHINGTON STATE FERRIES
+COLREGS, 80.1385, 80.1390 (see note A)
+GUEMES CHANNEL VTS
+LIGHTERING STANDARDS OF CARE
+NOAA WEATHER RADIO BROADCASTS
+CAUTION - NAVAL VESSEL MANEUVERING
+PUGET SOUND HARBOR SAFETY PLAN
+RACING BUOYS
+RADAR REFLECTORS
+REGULATED NAVIGATION AREA
+SMALL ARMS SAFETY ZONE
+VESSEL TRAFFIC SERVICES AREA
+WATER LEVELS, CURRENTS, AND TIDES
+COMMENTS REQUESTED
+
+
+NOTES:
+
+NOTE A
+Navigation regulations are published in Chapter 2, U.S. Coast Pilot 10. Additions or revisions to Chapter 2 are published in the Notice to Mariners. Information concerning the regulations may be obtained at the Office of the Commander, 13th Coast Guard District in Seattle, Washington or at the Office of the District Engineer, Corps of Engineers in Seattle, Washington. Refer to charted regulation section numbers.
+
+
+AIDS TO NAVIGATION
+Consult U.S. Coast Guard Light List for supplemental information concerning aids to navigation.
+
+
+POLLUTION REPORTS
+Report all spills of oil and hazardous substances to the National Response Center via 1-800-424-8802 (toll free), or to the nearest U.S. Coast Guard facility if telephone communication is impossible (33 CFR 153).
+
+
+CAUTION - USE OF RADIO SIGNALS (LIMITATIONS)
+Limitations on the use of radio signals as aids to marine navigation can be found in the U.S. Coast Guard Light Lists and National Geospatial-Intelligence Agency Publication 117. Radio direction-finder bearings to commercial broadcasting stations are subject to error and should be used with caution.
+
+
+SUPPLEMENTAL INFORMATION
+Consult U.S. Coast Pilot 10 for important supplemental information.
+
+
+CAUTION - TEMPORARY CHANGES
+Temporary changes or defects in aids to navigation are not indicated. See Local Notice to Mariners.
+
+
+WARNING - PRUDENT MARINER
+The prudent mariner will not rely solely on any single aid to navigation, particularly on floating aids. See U.S. Coast Guard Light List and U.S. Coast Pilot for details.
+
+
+ADDITIONAL INFORMATION
+Additional information can be obtained at www.nauticalcharts.noaa.gov.
+
+
+AUTHORITIES
+Hydrography and Topography by the National Ocean Service, Coast Survey with additional data from the Corps of Engineers, Geological Survey, and U.S. Coast Guard and Canadian Authorities.
+
+
+ADMINISTRATION AREA
+The entire extent of this ENC cell falls within the limits of an Administration Area. This area covers land, internal waters, and territorial sea. The territorial sea is a maritime zone over which the United States exercises sovereignty extending to the airspace as well as to its bed and subsoil. For more information, please refer to the Coast Pilot.
+
+
+CANADIAN WEATHER RADIO BROADCASTS
+The Canadian Weather Service station listed below provides continuous marine weather broadcasts. The range of reception is variable, but for most stations is usually 20 to 40 nautical miles from the antenna site.
+
+Vancouver, B.C.		CFA-240		162.400 MHz
+
+
+CAUTION - COOPERATIVE VESSEL TRAFFIC SERVICES
+A Cooperative Vessel Traffic Services (CVTS) system has been established by the United States and Canada within the adjoining waters in the Juan de Fuca Region. The appropriate Vessel Traffic Center (VTC) (Prince Rupert Traffic, Seattle Traffic, Victoria Traffic) administers the rules issued by both nations, however, it will enforce only its own set of rules within its jurisdiction.
+
+
+CAUTION - QUALITY OF BATHYMETRIC DATA
+The areas represented by the object M_QUAL (Quality of data) are approximate due to generalizing for clarity. Caution is advised, particularly for nearshore navigation or voyage planning. M_QUAL represents areas of uniform quality of bathymetric data. The CATZOC (Category of zone of confidence in data) attribute of M_QUAL provides an assessment of the overall zone of confidence.
+
+
+CAUTION - SUBMARINE PIPELINES AND CABLES
+Additional uncharted submarine pipelines and submarine cables may exist within the area of this chart. Not all submarine pipelines and submarine cables are required to be buried, and those that were originally buried may have become exposed. Mariners should use extreme caution when operating vessels in depths of water comparable to their draft in areas where pipelines and cables may exist, and when anchoring, dragging, or trawling. Covered wells may be marked by lighted or unlighted buoys.
+
+
+CAUTION - USACE HYDROGRAPHIC SURVEYS
+USACE conducts hydrographic surveys to monitor navigation conditions. These surveys are not intended to detect underwater features. Undetected features hazardous to surface navigation may exist in federal channels, as might shoaling, particularly along the edges of channels. For more information visit https://navigation.usace.army.mil/Survey/Hydro/.
+
+
+CAUTION - WASHINGTON STATE FERRIES
+Mariners are cautioned that the Washington State Ferries may deviate from the published standard routes due to inclement weather, traffic conditions, navigational hazards, or other emergency conditions. Standard ferry routes within the waters of the San Juan Islands are not displayed on this chart.
+
+
+COLREGS, 80.1385, 80.1390 (see note A)
+International Regulations for Preventing Collisions at Sea, 1972 The entire area of this chart falls seaward of the COLREGS Demarcation Line.
+
+
+GUEMES CHANNEL VTS
+Guemes Channel, VTS Special area. 33 CFR 161.55(c).
+
+
+LIGHTERING STANDARDS OF CARE
+Lightering Standards of Care have been established for this area through the Harbor Safety Plan. These Standards of Care supplement existing regulations with good marine practices for lightering. If your vessel does not have a copy of the Lightering Standards of Care, you can download one at https://marexps.com/membership/puget-sound-harbor-safety-committee/ or contact the Marine Exchange of Puget Sound at (206) 443-3830.
+
+
+NOAA WEATHER RADIO BROADCASTS
+The NOAA Weather Radio stations listed below provide continuous weather broadcasts. The reception range is typically 20 to 40 nautical miles from the antenna site, but can be as much as 100 nautical miles for stations at high elevations.
+
+Puget Sound Marine, WA 			WWG-24		162.425 MHz
+H Street - Blaine Area, WA		KED-93		162.525 MHz
+
+
+CAUTION - NAVAL VESSEL MANEUVERING
+Naval vessels may be maneuvering in circles in this area. Proceed with caution. For further information consult Coast Guard Local Notice to Mariners.
+
+
+PUGET SOUND HARBOR SAFETY PLAN
+The US Coast Guard and the Puget Sound Harbor Safety Committee have developed and adopted a Harbor Safety Plan that formally established a set of Standards of Care for Puget Sound and surrounding waters. These Standards of Care are intended to supplement existing regulations by documenting good marine practices for a variety of operations including tug escorts, pilotage, anchoring, lightering, and provides additional information on required charts, Aids to Navigation and Emergency Response. If your vessel does not already have a copy of the Puget Sound Harbor Safety Plan, visit https://marexps.com/membership/puget-sound-harbor-safety-committee/ or contact the Marine Exchange of Puget Sound at (206) 443-3830.
+
+
+RACING BUOYS
+Racing buoys within the limits of this chart are not shown hereon. Information may be obtained from the U.S. Coast Guard District Offices as racing and other private buoys are not all listed in the U.S. Coast Guard Light List.
+
+
+RADAR REFLECTORS
+Radar Reflectors have been placed on many floating aids to navigation. Individual radar reflector identification on these aids has been omitted from this chart.
+
+
+REGULATED NAVIGATION AREA
+A Regulated Navigation Area has been established by the U.S. Coast Guard. Please see Chapter 2, U.S. Coast Pilot 10 or 33 CFR 165.1301 and 33 CFR 165.1303.
+
+
+SMALL ARMS SAFETY ZONE
+Naval Air Station small arms range operates 7 days a week. Red flashing light and flags are displayed during live fire exercises. Use caution when transiting near the zone.
+
+
+VESSEL TRAFFIC SERVICES AREA
+The U.S. Coast Guard operates a mandatory Vessel Traffic Services (VTS) system in the Puget Sound area. Vessel operating procedures and designated radiotelephone frequencies are published in 33 CFR 161, Chapter 2 U.S. Coast Pilot, and/or the VTS User's Manual. Mariners should consult these sources for applicable rules and reporting requirements. The entire area of the chart falls within the Vessel Traffic Services (VTS) system.
+
+
+WATER LEVELS, CURRENTS, AND TIDES
+Real-time water levels, tide predictions, and tidal current predictions are available on the internet from NOAA's Center for Operational Oceanographic Products and Services (CO-OPS) at https://tidesandcurrents.noaa.gov/water_level_info.html and https://tidesandcurrents.noaa.gov/currents_info.html.
+
+
+COMMENTS REQUESTED
+NOAA encourages users to submit inquiries, discrepancies, or comments about this chart via NOAA's ASSIST tool at https://www.nauticalcharts.noaa.gov/customer-service/assist/.
+
+
+END OF FILE
