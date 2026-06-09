@@ -1,4 +1,4 @@
-VERSION=0.0.3
+VERSION=0.0.4
 IMAGE ?= wdantuma/s57-tiler:latest
 
 # All Go sources (plus module files) — build targets depend on these so they
