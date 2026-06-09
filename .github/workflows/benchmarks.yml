@@ -62,10 +62,12 @@ jobs:
           # ns/op is noisy on shared runners; keep the threshold generous and rely
           # on allocs/op + B/op (deterministic). Alert, don't hard-fail the build.
           alert-threshold: '150%'
-          comment-on-alert: true
+          # Comments need a write token; fork PRs get a read-only one, so commenting
+          # there 403s and crashes the step. Only comment on same-repo PRs.
+          comment-on-alert: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
           fail-on-alert: false
           # Append to the trend only on master; PRs compare + comment without pushing
           # (and fork PRs get a read-only token, so they can't push regardless).
           auto-push: ${{ github.event_name == 'push' }}
           save-data-file: ${{ github.event_name == 'push' }}
-          comment-always: ${{ github.event_name == 'pull_request' }}
+          comment-always: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}

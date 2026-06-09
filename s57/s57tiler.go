@@ -51,6 +51,49 @@ type s57Tiler struct {
 	keys      []string
 	lastx     int32
 	lasty     int32
+
+	// Reusable single-coordinate transform buffers, so to3857 doesn't allocate
+	// per call. Per-tiler (one goroutine owns each tiler), so no sharing.
+	bx, by, bz []float64
+
+	// Cached tile projection: the 3857 origin and tile-unit scale, recomputed
+	// only when the tile bounds change (they are constant for a whole tile).
+	projBounds       m.Extrema
+	projSet          bool
+	ulx, uly, xf, yf float64
+
+	// Cached open datasource, reused across every tile this tiler generates for a
+	// file instead of reopening (and re-parsing) the S-57 cell each tile. Per-tiler
+	// (one goroutine per tiler), so the non-thread-safe handle is never shared.
+	// Must be released with Close().
+	ds     gdal.DataSource
+	dsPath string
+	dsOpen bool
+}
+
+// datasource returns a cached open handle for path, opening it on first use and
+// reopening only if the path changes. The caller must not Destroy the result; its
+// lifetime is owned by the tiler and released by Close().
+func (s *s57Tiler) datasource(path string) gdal.DataSource {
+	if s.dsOpen && s.dsPath == path {
+		return s.ds
+	}
+	if s.dsOpen {
+		s.ds.Destroy()
+	}
+	s.ds = gdal.OpenDataSource(path, 0)
+	s.dsPath = path
+	s.dsOpen = true
+	return s.ds
+}
+
+// Close releases the cached datasource. A worker must defer this when its tiler is
+// done; the tiler must not be used afterwards.
+func (s *s57Tiler) Close() {
+	if s.dsOpen {
+		s.ds.Destroy()
+		s.dsOpen = false
+	}
 }
 
 func NewS57Tiler(datasets []dataset.Dataset) *s57Tiler {
@@ -59,7 +102,13 @@ func NewS57Tiler(datasets []dataset.Dataset) *s57Tiler {
 	dst := gdal.CreateSpatialReference("")
 	dst.FromEPSG(3857)
 
-	return &s57Tiler{transform: gdal.CreateCoordinateTransform(src, dst), datasets: datasets}
+	return &s57Tiler{
+		transform: gdal.CreateCoordinateTransform(src, dst),
+		datasets:  datasets,
+		bx:        make([]float64, 1),
+		by:        make([]float64, 1),
+		bz:        make([]float64, 1),
+	}
 }
 
 func (s *s57Tiler) startLayer() {
@@ -70,28 +119,39 @@ func (s *s57Tiler) startLayer() {
 }
 
 func (s *s57Tiler) to3857(x float64, y float64) (float64, float64) {
-	xs := make([]float64, 1)
-	xs[0] = y
-	ys := make([]float64, 1)
-	ys[0] = x
-	zs := make([]float64, 1)
-	zs[0] = 0
+	// The transform expects geographic coordinates in (lat, lon) order, so y goes
+	// into the first array and x into the second (preserved from the original).
+	s.bx[0] = y
+	s.by[0] = x
+	s.bz[0] = 0
 
-	s.transform.Transform(1, xs, ys, zs)
+	s.transform.Transform(1, s.bx, s.by, s.bz)
 
-	return xs[0], ys[0]
+	return s.bx[0], s.by[0]
+}
+
+// setProjection caches the tile's 3857 origin (ulx, uly) and tile-unit scale
+// (xf, yf). The tile bounds are constant for a whole tile, so this recomputes the
+// two corner transforms only when the bounds change instead of once per vertex.
+func (s *s57Tiler) setProjection(tileBounds m.Extrema) {
+	if s.projSet && tileBounds == s.projBounds {
+		return
+	}
+	ulx, uly := s.to3857(tileBounds.W, tileBounds.N)
+	lrx, lry := s.to3857(tileBounds.E, tileBounds.S)
+	s.ulx = ulx
+	s.uly = uly
+	s.xf = TILE_EXTENT / (lrx - ulx)
+	s.yf = TILE_EXTENT / (uly - lry)
+	s.projBounds = tileBounds
+	s.projSet = true
 }
 
 func (s *s57Tiler) toTileCoordinate(tileBounds m.Extrema, x float64, y float64, z float64) (int32, int32, int32) {
+	s.setProjection(tileBounds)
 	tx, ty := s.to3857(x, y)
-
-	ulx, uly := s.to3857(tileBounds.W, tileBounds.N)
-	lrx, lry := s.to3857(tileBounds.E, tileBounds.S)
-
-	xf := TILE_EXTENT / (lrx - ulx)
-	yf := TILE_EXTENT / (uly - lry)
-	xx := (tx - ulx) * xf
-	yy := (uly - ty) * yf
+	xx := (tx - s.ulx) * s.xf
+	yy := (s.uly - ty) * s.yf
 	return int32(xx), int32(yy), 0
 }
 
@@ -391,6 +451,9 @@ func (s *s57Tiler) GetFeatures(layer gdal.Layer, tile m.TileID, tileBounds m.Ext
 	bounds := m.Extrema{N: tileBounds.N + buffer, S: tileBounds.S - buffer, W: tileBounds.W - buffer, E: tileBounds.E + buffer}
 
 	layer.SetSpatialFilterRect(bounds.W, bounds.S, bounds.E, bounds.N)
+	// Reset the cursor: the layer handle is reused across tiles now, so start each
+	// scan from the beginning rather than wherever the previous tile left off.
+	layer.ResetReading()
 
 	ok := true
 
@@ -492,14 +555,16 @@ func (s *s57Tiler) GenerateTile(outPath string, file dataset.File, tile m.TileID
 	tileEnvelope.SetMinX(bounds.W)
 	tileEnvelope.SetMinY(bounds.S)
 
+	// Reuse one open datasource for every layer and across every tile this tiler
+	// generates (released by Close()), instead of reopening the S-57 cell each time.
+	datasource := s.datasource(file.Path)
+
 	for layerName, layer := range file.Layers {
 		ln := layerName
 		var version uint32 = 2
 		var extent uint32 = TILE_EXTENT
 		s.startLayer()
 		mvtLayer := vectortile.Tile_Layer{Name: &ln, Version: &version, Extent: &extent}
-		datasource := gdal.OpenDataSource(file.Path, 0)
-		defer datasource.Destroy()
 		if layer.Bounds.Intersects(tileEnvelope) {
 			l := datasource.LayerByName(layerName)
 			// FeatureCount(false) returns (-1, false) for layers the S-57 driver

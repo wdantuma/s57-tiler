@@ -154,8 +154,10 @@ func main() {
 			go func() {
 				defer wg.Done()
 				// Per-worker tiler: GenerateTile mutates per-call state
-				// (keysMap/values/lastx/lasty) so instances cannot be shared.
+				// (keysMap/values/lastx/lasty) and caches an open datasource, so
+				// instances cannot be shared across goroutines.
 				workerTiler := s57.NewS57Tiler(datasets)
+				defer workerTiler.Close()
 				for tile := range jobs {
 					workerTiler.GenerateTile(*outputPath, wu.file, tile)
 					prog.inc()
