@@ -1,0 +1,71 @@
+name: benchmarks
+
+# Runs the tiling benchmark suite and tracks results over time to catch
+# performance regressions. On master the results are appended to the gh-pages
+# branch (trend history); on pull requests they are compared against that history
+# and a comment is posted if a benchmark regresses beyond the alert threshold.
+#
+# The job runs in a pinned ubuntu:24.04 container so the GDAL version is stable
+# (24.04 LTS => GDAL 3.8.x) and won't drift with the GitHub runner image. The cgo
+# binding builds via `#cgo pkg-config: gdal`, so it needs Debian's libgdal-dev
+# (headers + gdal.pc), which the osgeo/gdal *runtime* images do not ship.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: write       # github-action-benchmark pushes trend data to gh-pages
+  pull-requests: write  # ...and comments on PRs
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
+    steps:
+      # Installed first because actions/checkout needs git, and cgo needs GDAL.
+      - name: Install GDAL and build tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            libgdal-dev pkg-config build-essential git ca-certificates
+
+      - uses: actions/checkout@v6
+
+      - name: Mark the workspace safe for git
+        # The container runs as root but the checkout is owned by a different UID, so
+        # git refuses with "dubious ownership" (exit 128) when `go build`/`go test`
+        # stamp VCS info into the binary. Trusting the path fixes all go commands.
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Verify GDAL is discoverable
+        run: pkg-config --modversion gdal
+
+      - name: Build (cgo/GDAL link sanity)
+        run: go build ./...
+
+      - name: Run benchmarks
+        run: go test -run='^$' -bench=. -benchmem -count=6 ./s57/... | tee output.txt
+
+      - name: Store result / alert on regression
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: go
+          output-file-path: output.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # ns/op is noisy on shared runners; keep the threshold generous and rely
+          # on allocs/op + B/op (deterministic). Alert, don't hard-fail the build.
+          alert-threshold: '150%'
+          comment-on-alert: true
+          fail-on-alert: false
+          # Append to the trend only on master; PRs compare + comment without pushing
+          # (and fork PRs get a read-only token, so they can't push regardless).
+          auto-push: ${{ github.event_name == 'push' }}
+          save-data-file: ${{ github.event_name == 'push' }}
+          comment-always: ${{ github.event_name == 'pull_request' }}
