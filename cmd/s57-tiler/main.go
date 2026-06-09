@@ -40,6 +40,22 @@ func main() {
 		*workers = 1
 	}
 
+	// The scale table (mercantile.Scale) is defined for z0..z23; beyond it the
+	// SCAMIN/SCAMAX filtering degrades, so clamp explicit flags into range.
+	const maxSupportedZoom = 23
+	clampZoom := func(name string, zp *int) {
+		switch {
+		case *zp < 0:
+			fmt.Printf("Note: -%s %d is below 0; clamped to 0.\n", name, *zp)
+			*zp = 0
+		case *zp > maxSupportedZoom:
+			fmt.Printf("Note: -%s %d exceeds the supported maximum z%d; clamped.\n", name, *zp, maxSupportedZoom)
+			*zp = maxSupportedZoom
+		}
+	}
+	clampZoom("minzoom", minzoom)
+	clampZoom("maxzoom", maxzoom)
+
 	// Honor explicit -minzoom/-maxzoom; otherwise the zoom range is derived per cell
 	// from its S-57 usage band (overview→berthing) in the pre-pass below.
 	userSetZoom := false
@@ -116,11 +132,21 @@ func main() {
 	fmt.Println("Scanning…")
 	var work []workUnit
 	var grandTotal int64
+	var reports []zoomReport
 	for _, ds := range datasets {
 		for _, file := range ds.Files {
 			fminzoom, fmaxzoom := *minzoom, *maxzoom
-			if !userSetZoom && tile == nil && bounds == nil {
-				fminzoom, fmaxzoom = dataset.BandZoom(dataset.UsageBand(file))
+			if tile == nil {
+				zr := dataset.CellZoomRange(file)
+				if !userSetZoom && bounds == nil {
+					fminzoom, fmaxzoom = zr.Min, zr.Max
+				}
+				reports = append(reports, zoomReport{
+					convMin:  fminzoom,
+					convMax:  fmaxzoom,
+					availMin: zr.Min,
+					availMax: zr.Max,
+				})
 			}
 			for z := fminzoom; z <= fmaxzoom; z++ {
 				var tiles map[string]m.TileID
@@ -141,6 +167,19 @@ func main() {
 			}
 		}
 	}
+
+	if lines, hint := summarizeZooms(reports); len(lines) > 0 {
+		fmt.Println("Zoom levels:")
+		for _, l := range lines {
+			fmt.Println(l)
+		}
+		if hint != "" {
+			fmt.Println(hint)
+		}
+	}
+	// Print the grand total up front: a native-zoom run over large-scale charts
+	// can be very large, so surface the count before the (possibly long) tiling.
+	fmt.Printf("Generating %d tiles\n", grandTotal)
 
 	prog := newProgress(grandTotal, os.Stdout)
 	go prog.run()
