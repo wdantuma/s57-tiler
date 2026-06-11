@@ -43,7 +43,10 @@ type Value struct {
 }
 
 type s57Tiler struct {
+	srcRef    gdal.SpatialReference
+	dstRef    gdal.SpatialReference
 	transform gdal.CoordinateTransform
+	closed    bool
 	datasets  []dataset.Dataset
 	valuesMap map[string]uint32
 	values    []Value
@@ -87,13 +90,21 @@ func (s *s57Tiler) datasource(path string) gdal.DataSource {
 	return s.ds
 }
 
-// Close releases the cached datasource. A worker must defer this when its tiler is
-// done; the tiler must not be used afterwards.
+// Close releases the cached datasource and the coordinate-transform / spatial-
+// reference handles created in NewS57Tiler. A worker must defer this when its
+// tiler is done; the tiler must not be used afterwards. Safe to call more than once.
 func (s *s57Tiler) Close() {
+	if s.closed {
+		return
+	}
+	s.closed = true
 	if s.dsOpen {
 		s.ds.Destroy()
 		s.dsOpen = false
 	}
+	s.transform.Destroy()
+	s.srcRef.Destroy()
+	s.dstRef.Destroy()
 }
 
 func NewS57Tiler(datasets []dataset.Dataset) *s57Tiler {
@@ -103,6 +114,8 @@ func NewS57Tiler(datasets []dataset.Dataset) *s57Tiler {
 	dst.FromEPSG(3857)
 
 	return &s57Tiler{
+		srcRef:    src,
+		dstRef:    dst,
 		transform: gdal.CreateCoordinateTransform(src, dst),
 		datasets:  datasets,
 		bx:        make([]float64, 1),
@@ -152,7 +165,23 @@ func (s *s57Tiler) toTileCoordinate(tileBounds m.Extrema, x float64, y float64, 
 	tx, ty := s.to3857(x, y)
 	xx := (tx - s.ulx) * s.xf
 	yy := (s.uly - ty) * s.yf
-	return int32(xx), int32(yy), 0
+	return clampToInt32(xx), clampToInt32(yy), 0
+}
+
+// clampToInt32 converts a tile-space coordinate to int32 without silently
+// wrapping: a pathological geometry or projection result (or NaN/±Inf) would
+// otherwise overflow the cast and produce a bogus tile coordinate.
+func clampToInt32(v float64) int32 {
+	switch {
+	case math.IsNaN(v):
+		return 0
+	case v >= math.MaxInt32:
+		return math.MaxInt32
+	case v <= math.MinInt32:
+		return math.MinInt32
+	default:
+		return int32(v)
+	}
 }
 
 func getCommand(command int, count int) uint32 {
@@ -506,20 +535,19 @@ func (s *s57Tiler) GetTiles(file dataset.File, zoomLevel int) map[string]m.TileI
 }
 
 func getBounds(file dataset.File) []float32 {
-
-	var bounds []float32
+	// The M_COVR extent is already cached on the File (populated at discovery), so
+	// read it directly. The previous version opened and immediately destroyed a
+	// datasource here without ever using it — pure wasted I/O on every metadata write.
 	layer, ok := file.Layers["M_COVR"]
-	if ok {
-		datasource := gdal.OpenDataSource(file.Path, 0)
-		defer datasource.Destroy()
-		bounds = make([]float32, 4)
-		bounds[0] = float32(layer.Bounds.MinX())
-		bounds[1] = float32(layer.Bounds.MinY())
-		bounds[2] = float32(layer.Bounds.MaxX())
-		bounds[3] = float32(layer.Bounds.MaxY())
+	if !ok {
+		return nil
 	}
-
-	return bounds
+	return []float32{
+		float32(layer.Bounds.MinX()),
+		float32(layer.Bounds.MinY()),
+		float32(layer.Bounds.MaxX()),
+		float32(layer.Bounds.MaxY()),
+	}
 }
 
 func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset, file dataset.File, minZoom int, maxZoom int) {
