@@ -6,7 +6,6 @@ package s57
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -43,7 +42,10 @@ type Value struct {
 }
 
 type s57Tiler struct {
+	srcRef    gdal.SpatialReference
+	dstRef    gdal.SpatialReference
 	transform gdal.CoordinateTransform
+	closed    bool
 	datasets  []dataset.Dataset
 	valuesMap map[string]uint32
 	values    []Value
@@ -87,13 +89,21 @@ func (s *s57Tiler) datasource(path string) gdal.DataSource {
 	return s.ds
 }
 
-// Close releases the cached datasource. A worker must defer this when its tiler is
-// done; the tiler must not be used afterwards.
+// Close releases the cached datasource and the coordinate-transform / spatial-
+// reference handles created in NewS57Tiler. A worker must defer this when its
+// tiler is done; the tiler must not be used afterwards. Safe to call more than once.
 func (s *s57Tiler) Close() {
+	if s.closed {
+		return
+	}
+	s.closed = true
 	if s.dsOpen {
 		s.ds.Destroy()
 		s.dsOpen = false
 	}
+	s.transform.Destroy()
+	s.srcRef.Destroy()
+	s.dstRef.Destroy()
 }
 
 func NewS57Tiler(datasets []dataset.Dataset) *s57Tiler {
@@ -103,6 +113,8 @@ func NewS57Tiler(datasets []dataset.Dataset) *s57Tiler {
 	dst.FromEPSG(3857)
 
 	return &s57Tiler{
+		srcRef:    src,
+		dstRef:    dst,
 		transform: gdal.CreateCoordinateTransform(src, dst),
 		datasets:  datasets,
 		bx:        make([]float64, 1),
@@ -152,7 +164,23 @@ func (s *s57Tiler) toTileCoordinate(tileBounds m.Extrema, x float64, y float64, 
 	tx, ty := s.to3857(x, y)
 	xx := (tx - s.ulx) * s.xf
 	yy := (s.uly - ty) * s.yf
-	return int32(xx), int32(yy), 0
+	return clampToInt32(xx), clampToInt32(yy), 0
+}
+
+// clampToInt32 converts a tile-space coordinate to int32 without silently
+// wrapping: a pathological geometry or projection result (or NaN/±Inf) would
+// otherwise overflow the cast and produce a bogus tile coordinate.
+func clampToInt32(v float64) int32 {
+	switch {
+	case math.IsNaN(v):
+		return 0
+	case v >= math.MaxInt32:
+		return math.MaxInt32
+	case v <= math.MinInt32:
+		return math.MinInt32
+	default:
+		return int32(v)
+	}
 }
 
 func getCommand(command int, count int) uint32 {
@@ -359,6 +387,11 @@ func decodeListString(s string) string {
 
 func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tile m.TileID, tileBounds m.Extrema) *vectortile.Tile_Feature {
 	geom := feature.Geometry()
+	// A malformed record can carry a null geometry; bail before dereferencing it
+	// (getMvtFeatureType/toMvtGeometry would otherwise call into a nil handle).
+	if geom.IsNull() {
+		return nil
+	}
 	mvtFeature := vectortile.Tile_Feature{}
 	mvtFeature.Type = s.getMvtFeatureType(&geom)
 	if *mvtFeature.Type != vectortile.Tile_UNKNOWN {
@@ -506,23 +539,22 @@ func (s *s57Tiler) GetTiles(file dataset.File, zoomLevel int) map[string]m.TileI
 }
 
 func getBounds(file dataset.File) []float32 {
-
-	var bounds []float32
+	// The M_COVR extent is already cached on the File (populated at discovery), so
+	// read it directly. The previous version opened and immediately destroyed a
+	// datasource here without ever using it — pure wasted I/O on every metadata write.
 	layer, ok := file.Layers["M_COVR"]
-	if ok {
-		datasource := gdal.OpenDataSource(file.Path, 0)
-		defer datasource.Destroy()
-		bounds = make([]float32, 4)
-		bounds[0] = float32(layer.Bounds.MinX())
-		bounds[1] = float32(layer.Bounds.MinY())
-		bounds[2] = float32(layer.Bounds.MaxX())
-		bounds[3] = float32(layer.Bounds.MaxY())
+	if !ok {
+		return nil
 	}
-
-	return bounds
+	return []float32{
+		float32(layer.Bounds.MinX()),
+		float32(layer.Bounds.MinY()),
+		float32(layer.Bounds.MaxX()),
+		float32(layer.Bounds.MaxY()),
+	}
 }
 
-func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset, file dataset.File, minZoom int, maxZoom int) {
+func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset, file dataset.File, minZoom int, maxZoom int) error {
 	path := filepath.Join(outPath, file.Id, "metadata.json")
 	bounds := getBounds(file)
 	// Fall back to the cell's catalog long-name when the dataset has no description,
@@ -533,17 +565,22 @@ func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset, fil
 	}
 	metaData := charts.ChartMetaData{Id: file.Id, Name: file.Id, Description: description, Created: time.Now().UTC(), Type: "S-57", Format: "pbf", MinZoom: minZoom, MaxZoom: maxZoom, Bounds: bounds}
 
-	out, _ := json.Marshal(metaData)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		os.MkdirAll(filepath.Dir(path), 0700) // Create your file
-	}
-	err := os.WriteFile(path, out, 0644)
+	out, err := json.Marshal(metaData)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("marshal metadata for %s: %w", file.Id, err)
 	}
+	// MkdirAll is a no-op when the directory already exists, so call it
+	// unconditionally rather than guarding with a Stat.
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		return fmt.Errorf("create directory for %s: %w", path, err)
+	}
+	if err := os.WriteFile(path, out, 0644); err != nil {
+		return fmt.Errorf("write %s: %w", path, err)
+	}
+	return nil
 }
 
-func (s *s57Tiler) GenerateTile(outPath string, file dataset.File, tile m.TileID) {
+func (s *s57Tiler) GenerateTile(outPath string, file dataset.File, tile m.TileID) error {
 	mvtTile := vectortile.Tile{}
 
 	//allowedLayers := []string{"BOYLAT", "BOYCAR", "BOYINB", "BOYISD", "BOYSAW", "BOYSPP", "BCNLAT", "BCNCAR", "BCNISN", "BCNSAW", "BCNSPP", "LIGHTS", "DEPARE", "SEAARE", "COALNE", "RESARE", "UNSARE", "LNDARE", "BUAARE", "NAVLNE", "RECTRC", "CANALS"}
@@ -606,15 +643,24 @@ func (s *s57Tiler) GenerateTile(outPath string, file dataset.File, tile m.TileID
 
 	path := filepath.Join(outPath, file.Id, strconv.Itoa(int(tile.Z)), strconv.Itoa(int(tile.X)), strconv.Itoa(int(tile.Y))) + ".pbf"
 	if len(mvtTile.Layers) > 0 {
-		out, _ := proto.Marshal(&mvtTile)
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			os.MkdirAll(filepath.Dir(path), 0700) // Create your file
-		}
-		err := os.WriteFile(path, out, 0644)
+		out, err := proto.Marshal(&mvtTile)
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("marshal tile %s: %w", path, err)
+		}
+		// MkdirAll is a no-op when the directory already exists, so call it
+		// unconditionally rather than guarding with a Stat.
+		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+			return fmt.Errorf("create directory for %s: %w", path, err)
+		}
+		if err := os.WriteFile(path, out, 0644); err != nil {
+			return fmt.Errorf("write %s: %w", path, err)
 		}
 	} else {
-		os.Remove(path)
+		// Best-effort cleanup of a now-empty tile; a missing file is fine, any
+		// other failure is surfaced so a stale invalid tile can't linger silently.
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("remove empty tile %s: %w", path, err)
+		}
 	}
+	return nil
 }

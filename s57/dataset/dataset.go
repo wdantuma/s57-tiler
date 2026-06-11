@@ -94,6 +94,45 @@ func (dataset Dataset) GetDatasetForTile(tile m.TileID) Dataset {
 	return retVal
 }
 
+// catalogCellRef extracts a cell's .000 file name and human title from a catalog
+// DataRecord, bounds-checking every field/subfield access so a truncated or
+// unexpected record is skipped (ok=false) rather than panicking. The subfield
+// layout mirrors the S-57 catalog: index 2 = file name, 3 = title, 5 = record
+// type ("BIN" for the binary cell files we tile).
+func catalogCellRef(rec iso8211.DataRecord) (fileName, title string, ok bool) {
+	if len(rec.Fields) < 2 {
+		return "", "", false
+	}
+	sf := rec.Fields[1].SubFields
+	if len(sf) < 6 || sf[5] != "BIN" {
+		return "", "", false
+	}
+	fileName = fmt.Sprintf("%s", sf[2])
+	if !strings.Contains(fileName, ".000") {
+		return "", "", false
+	}
+	if len(sf) > 3 {
+		title = strings.TrimSpace(fmt.Sprintf("%s", sf[3]))
+	}
+	return fileName, title, true
+}
+
+// safeCellID derives the chart id from a cell file path (its base name minus the
+// ".000" suffix) and rejects anything that isn't a single, safe path element, so
+// a crafted catalog can't make the id (".."/"."/a separator/empty) escape the
+// output directory when it is later joined into the tile path.
+func safeCellID(filePath string) (string, bool) {
+	base := filepath.Base(filePath)
+	if len(base) < 4 {
+		return "", false
+	}
+	id := base[:len(base)-4]
+	if id == "" || id == "." || id == ".." || strings.ContainsAny(id, `/\`) {
+		return "", false
+	}
+	return id, true
+}
+
 func GetS57Datasets(path string) ([]Dataset, error) {
 	datasets := make([]Dataset, 0)
 	err := filepath.WalkDir(path, func(fp string, entry fs.DirEntry, err error) error {
@@ -113,37 +152,46 @@ func GetS57Datasets(path string) ([]Dataset, error) {
 				if err != nil {
 					return err
 				}
+				defer f.Close()
 				var l iso8211.LeadRecord
 				l.Read(f)
 				var d iso8211.DataRecord
 				d.Lead = &l
 				for d.Read(f) == nil {
-					if d.Fields[1].SubFields[5] == "BIN" {
-						fileName := fmt.Sprintf("%s", d.Fields[1].SubFields[2])
-						if strings.Contains(fileName, ".000") {
-							filePath := strings.ReplaceAll(fileName, "\\", string(os.PathSeparator))
-							filePath = filepath.Join(filepath.Dir(fp), filePath)
-							parts = strings.Split(filePath, string(os.PathSeparator))
-							datasource := gdal.OpenDataSource(filePath, 0)
-							defer datasource.Destroy()
-							// The catalog's LFIL ("long file name") subfield carries the
-							// cell's human-readable title (e.g. "Anacortes and Vicinity, WA"),
-							// used as the chart Description. Absent in some older downloads.
-							title := ""
-							if len(d.Fields[1].SubFields) > 3 {
-								title = strings.TrimSpace(fmt.Sprintf("%s", d.Fields[1].SubFields[3]))
-							}
-							file := File{
-								Id:     parts[len(parts)-1][0 : len(parts[len(parts)-1])-4],
-								Path:   filePath,
-								Title:  title,
-								Layers: getLayers(datasource),
-							}
-							dataset.Files = append(dataset.Files, file)
-						}
-
+					// The catalog's LFIL ("long file name") subfield carries the cell's
+					// human-readable title (e.g. "Anacortes and Vicinity, WA"), used as the
+					// chart Description; absent in some older downloads.
+					fileName, title, ok := catalogCellRef(d)
+					if !ok {
+						continue
 					}
-
+					filePath := strings.ReplaceAll(fileName, "\\", string(os.PathSeparator))
+					filePath = filepath.Join(filepath.Dir(fp), filePath)
+					cellID, ok := safeCellID(filePath)
+					if !ok {
+						fmt.Fprintf(os.Stderr, "skipping cell with unsafe name %q in %s\n", fileName, fp)
+						continue
+					}
+					// Skip cells the catalog references but that aren't present/readable,
+					// so a dangling entry never reaches OpenDataSource (whose binding can't
+					// report a failed open).
+					if _, statErr := os.Stat(filePath); statErr != nil {
+						fmt.Fprintf(os.Stderr, "skipping missing cell %s: %v\n", filePath, statErr)
+						continue
+					}
+					// Open, enumerate layers, and release the handle immediately rather
+					// than deferring (a deferred Destroy here would keep every cell in the
+					// catalog open until the whole walk returns, exhausting file descriptors
+					// on large catalogs).
+					datasource := gdal.OpenDataSource(filePath, 0)
+					layers := getLayers(datasource)
+					datasource.Destroy()
+					dataset.Files = append(dataset.Files, File{
+						Id:     cellID,
+						Path:   filePath,
+						Title:  title,
+						Layers: layers,
+					})
 				}
 				datasets = append(datasets, dataset)
 

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 
 	"github.com/lukeroth/gdal"
@@ -189,6 +190,19 @@ func main() {
 		return
 	}
 
+	// Track write failures across all workers. A transient error (e.g. disk full,
+	// EPERM) no longer aborts the whole multi-hour run via log.Fatal; instead we
+	// keep going, surface the first error, count the rest, and exit non-zero at the
+	// end so a failed run is never mistaken for a complete one.
+	var failCount int64
+	var failOnce sync.Once
+	recordFailure := func(what string, err error) {
+		atomic.AddInt64(&failCount, 1)
+		failOnce.Do(func() {
+			fmt.Fprintf(os.Stderr, "\nerror: %s: %v\n", what, err)
+		})
+	}
+
 	prog := newProgress(grandTotal, os.Stdout)
 	go prog.run()
 	for _, wu := range work {
@@ -209,7 +223,9 @@ func main() {
 				workerTiler := s57.NewS57Tiler(datasets)
 				defer workerTiler.Close()
 				for tile := range jobs {
-					workerTiler.GenerateTile(*outputPath, wu.file, tile)
+					if err := workerTiler.GenerateTile(*outputPath, wu.file, tile); err != nil {
+						recordFailure(fmt.Sprintf("tile %s z%d %d/%d", wu.file.Id, tile.Z, tile.X, tile.Y), err)
+					}
 					prog.inc()
 				}
 			}()
@@ -222,13 +238,19 @@ func main() {
 		}
 		close(jobs)
 		wg.Wait()
-		tiler.GenerateMetaData(*outputPath, wu.dataset, wu.file, wu.minzoom, wu.maxzoom)
+		if err := tiler.GenerateMetaData(*outputPath, wu.dataset, wu.file, wu.minzoom, wu.maxzoom); err != nil {
+			recordFailure("metadata "+wu.file.Id, err)
+		}
 	}
 	prog.finish()
 
 	if ctx.Err() != nil {
 		fmt.Fprintln(os.Stderr, "Interrupted; output is incomplete.")
 		os.Exit(130)
+	}
+	if n := atomic.LoadInt64(&failCount); n > 0 {
+		fmt.Fprintf(os.Stderr, "Completed with %d write failure(s); output is incomplete.\n", n)
+		os.Exit(1)
 	}
 }
 

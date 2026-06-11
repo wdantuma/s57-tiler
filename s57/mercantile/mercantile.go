@@ -130,7 +130,24 @@ func Tile(lng float64, lat float64, zoom int) TileID {
 	n := math.Pow(2.0, float64(zoom))
 	xtile := int(math.Floor((lng + 180.0) / 360.0 * n))
 	ytile := int(math.Floor((1.0 - math.Log(math.Tan(lat)+(1.0/math.Cos(lat)))/math.Pi) / 2.0 * n))
+	// Clamp to the valid [0, 2^zoom) grid. At the antimeridian (lng=180) the x
+	// math lands exactly on 2^zoom (one past the last column), and latitudes past
+	// the Web-Mercator limit drive y out of range; either would make callers like
+	// GetTilesForBounds iterate off-grid and emit invalid tiles.
+	max := int(n) - 1
+	xtile = clampTileIndex(xtile, max)
+	ytile = clampTileIndex(ytile, max)
 	return TileID{int64(xtile), int64(ytile), uint64(zoom)}
+}
+
+func clampTileIndex(v, max int) int {
+	if v < 0 {
+		return 0
+	}
+	if v > max {
+		return max
+	}
+	return v
 }
 
 // Returns in string format like a geohash would be
@@ -151,6 +168,9 @@ func Tilestr(tileid TileID) string {
 // From a tilestr representation back to a tileid
 func Strtile(tileid string) TileID {
 	vals := strings.Split(tileid, "/")
+	if len(vals) < 3 {
+		return TileID{}
+	}
 	x, _ := strconv.ParseInt(vals[0], 0, 64)
 	y, _ := strconv.ParseInt(vals[1], 0, 64)
 	z, _ := strconv.ParseInt(vals[2], 0, 64)
@@ -201,6 +221,9 @@ func TileFromString(val string) TileID {
 		vals = strings.Split(val, " ")
 	}
 
+	if len(vals) < 3 {
+		return TileID{}
+	}
 	x, _ := strconv.ParseInt(vals[0], 0, 64)
 	y, _ := strconv.ParseInt(vals[1], 0, 64)
 	z, _ := strconv.ParseInt(vals[2], 0, 64)
