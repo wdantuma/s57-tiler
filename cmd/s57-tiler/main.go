@@ -223,7 +223,8 @@ func main() {
 				workerTiler := s57.NewS57Tiler(datasets)
 				defer workerTiler.Close()
 				for tile := range jobs {
-					if err := workerTiler.GenerateTile(*outputPath, wu.file, tile); err != nil {
+					err := runTile(func() error { return workerTiler.GenerateTile(*outputPath, wu.file, tile) })
+					if err != nil {
 						recordFailure(fmt.Sprintf("tile %s z%d %d/%d", wu.file.Id, tile.Z, tile.X, tile.Y), err)
 					}
 					prog.inc()
@@ -252,6 +253,18 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Completed with %d write failure(s); output is incomplete.\n", n)
 		os.Exit(1)
 	}
+}
+
+// runTile runs do, converting a panic (e.g. from a pathological geometry in the
+// GDAL pipeline) into an error so a single bad tile is recorded as a failure and
+// the run continues, rather than crashing the whole multi-hour job.
+func runTile(do func() error) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic: %v", r)
+		}
+	}()
+	return do()
 }
 
 // workUnit is the tile set for a single (dataset, file, zoom), materialized during
