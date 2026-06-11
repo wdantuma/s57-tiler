@@ -207,8 +207,10 @@ func IsClockWise(geom *gdal.Geometry) bool {
 }
 
 func (s *s57Tiler) toMvtLinestringGeometry(geometry *gdal.Geometry, tileBounds m.Extrema, ccw bool) []uint32 {
-	mvtGeometry := make([]uint32, 0)
 	count := geometry.PointCount()
+	// Each vertex emits 2 ints, plus the moveto/lineto commands (and +1 of headroom
+	// for the polygon close-path the caller may append) — pre-size to avoid regrowth.
+	mvtGeometry := make([]uint32, 0, 2*count+4)
 
 	if count > 1 {
 		index := 0
@@ -254,8 +256,8 @@ func (s *s57Tiler) toMvtPolygonGeometry(geometry *gdal.Geometry, tileBounds m.Ex
 }
 
 func (s *s57Tiler) toMvtPointGeometry(geometry *gdal.Geometry, tileBounds m.Extrema) []uint32 {
-	mvtGeometry := make([]uint32, 0)
 	count := geometry.PointCount()
+	mvtGeometry := make([]uint32, 0, 2*count+1)
 	mvtGeometry = append(mvtGeometry, getCommand(1, count))
 	for i := 0; i < count; i++ {
 		x, y, _ := geometry.Point(i)
@@ -276,7 +278,9 @@ func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry 
 	s.lasty = 0
 	mvtGeometry := make([]uint32, 0)
 
-	tolerance := TILE_DIMENSION_AT_0 / math.Pow(2, float64(tile.Z)) / 256 * SIMPLIFICATION_FACTOR
+	// 2^Z is exact for the supported zooms (Z<=23), so a bit shift avoids math.Pow
+	// per feature while producing the identical tolerance.
+	tolerance := TILE_DIMENSION_AT_0 / float64(uint64(1)<<tile.Z) / 256 * SIMPLIFICATION_FACTOR
 
 	simplifiedGeometry := geometry.SimplifyPreservingTopology(tolerance)
 	defer simplifiedGeometry.Destroy()
