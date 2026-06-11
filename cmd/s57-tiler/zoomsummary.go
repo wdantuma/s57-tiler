@@ -23,6 +23,14 @@ func (r zoomReport) isSubset() bool {
 // flag(s) (-minzoom/-maxzoom) that would widen the range, using the envelope
 // across all subset cells. Groups are emitted in first-seen order, so output is
 // deterministic for a given input.
+// plural returns singular for n==1 and the simple "+s" plural otherwise.
+func plural(n int, singular string) string {
+	if n == 1 {
+		return singular
+	}
+	return singular + "s"
+}
+
 func summarizeZooms(reports []zoomReport) (lines []string, hint string) {
 	if len(reports) == 0 {
 		return nil, ""
@@ -47,7 +55,7 @@ func summarizeZooms(reports []zoomReport) (lines []string, hint string) {
 	for _, key := range order {
 		g := groups[key]
 		r := g.rep
-		line := fmt.Sprintf("  %d chart(s): converting z%d-z%d", g.count, r.convMin, r.convMax)
+		line := fmt.Sprintf("  %d %s: converting z%d-z%d", g.count, plural(g.count, "chart"), r.convMin, r.convMax)
 		if r.isSubset() {
 			line += fmt.Sprintf("  (data available z%d-z%d)", r.availMin, r.availMax)
 		}
