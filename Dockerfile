@@ -4,7 +4,7 @@ FROM ghcr.io/osgeo/gdal:ubuntu-small-3.9.1 AS build
 # against. Use a pinned Go toolchain (overridable) rather than the distro's
 # golang-go, which can lag go.mod's required version. TARGETARCH is provided by
 # buildx for multi-arch builds; it defaults to amd64 for a plain `docker build`.
-ARG GO_VERSION=1.22.5
+ARG GO_VERSION=1.26.0
 ARG TARGETARCH=amd64
 RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential git ca-certificates wget && \

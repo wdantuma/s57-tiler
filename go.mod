@@ -1,8 +1,6 @@
 module github.com/wdantuma/s57-tiler
 
-go 1.22
-
-toolchain go1.22.2
+go 1.26
 
 require (
 	github.com/lukeroth/gdal v0.0.0-20230818145556-62d5095a1cda

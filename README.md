@@ -1,6 +1,6 @@
 # s57-tiler
 
-![Go](https://img.shields.io/badge/Go-1.22-00ADD8?logo=go&logoColor=white)
+![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-wdantuma%2Fs57--tiler-2496ED?logo=docker&logoColor=white)
 
 s57-tiler converts S-57 ENC nautical charts into Mapbox Vector Tiles (`.pbf`) for use with the Signal K [freeboard-sk](https://github.com/SignalK/freeboard-sk) chart plotter.
@@ -62,7 +62,7 @@ native z19 versus ~62k capped at z16. Run with `-dry-run` first to see the count
 
 ## Building from source
 
-**Requirements:** Go 1.22 and the GDAL development headers (found via `pkg-config`).
+**Requirements:** Go 1.26 and the GDAL development headers (found via `pkg-config`).
 
 ```bash
 # macOS
