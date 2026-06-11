@@ -359,6 +359,11 @@ func decodeListString(s string) string {
 
 func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tile m.TileID, tileBounds m.Extrema) *vectortile.Tile_Feature {
 	geom := feature.Geometry()
+	// A malformed record can carry a null geometry; bail before dereferencing it
+	// (getMvtFeatureType/toMvtGeometry would otherwise call into a nil handle).
+	if geom.IsNull() {
+		return nil
+	}
 	mvtFeature := vectortile.Tile_Feature{}
 	mvtFeature.Type = s.getMvtFeatureType(&geom)
 	if *mvtFeature.Type != vectortile.Tile_UNKNOWN {
