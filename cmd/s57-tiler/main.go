@@ -128,6 +128,7 @@ func main() {
 	defer stop()
 
 	tiler := s57.NewS57Tiler(datasets)
+	defer tiler.Close() // release its SRS/transform handles on normal exit
 
 	// Pre-pass: per file, derive its zoom range and cache its layer extents (one
 	// full scan), then count the tiles for a single global total + ETA. The tile
