@@ -9,6 +9,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -602,7 +603,16 @@ func (s *s57Tiler) GenerateTile(outPath string, file dataset.File, tile m.TileID
 	// generates (released by Close()), instead of reopening the S-57 cell each time.
 	datasource := s.datasource(file.Path)
 
-	for layerName, layer := range file.Layers {
+	// Iterate layers in a stable order so the encoded .pbf is byte-deterministic.
+	// Go map iteration over file.Layers is randomized, which otherwise makes the
+	// tile bytes vary run-to-run even when the decoded content is identical.
+	layerNames := make([]string, 0, len(file.Layers))
+	for layerName := range file.Layers {
+		layerNames = append(layerNames, layerName)
+	}
+	sort.Strings(layerNames)
+	for _, layerName := range layerNames {
+		layer := file.Layers[layerName]
 		ln := layerName
 		var version uint32 = 2
 		var extent uint32 = TILE_EXTENT
