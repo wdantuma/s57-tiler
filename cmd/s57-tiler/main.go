@@ -1,19 +1,23 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
-	"github.com/lukeroth/gdal"
-	"github.com/wdantuma/s57-tiler/s57"
-	"github.com/wdantuma/s57-tiler/s57/dataset"
-	m "github.com/wdantuma/s57-tiler/s57/mercantile"
 	"log"
 	"os"
+	"os/signal"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
+
+	"github.com/lukeroth/gdal"
+	"github.com/wdantuma/s57-tiler/s57"
+	"github.com/wdantuma/s57-tiler/s57/dataset"
+	m "github.com/wdantuma/s57-tiler/s57/mercantile"
 )
 
 func main() {
@@ -35,6 +39,7 @@ func main() {
 	debug := flag.Bool("debug", false, "Show debug info")
 	at := flag.String("at", "", "lon,lat")
 	workers := flag.Int("workers", runtime.NumCPU()-1, "Number of parallel tile workers") // keep one CPU available for system responsiveness
+	dryRun := flag.Bool("dry-run", false, "Scan and report the tile count, then exit without writing any tiles")
 	flag.Parse()
 
 	if *workers < 1 {
@@ -43,19 +48,26 @@ func main() {
 
 	// The scale table (mercantile.Scale) is defined for z0..z23; beyond it the
 	// SCAMIN/SCAMAX filtering degrades, so clamp explicit flags into range.
-	const maxSupportedZoom = 23
-	clampZoom := func(name string, zp *int) {
-		switch {
-		case *zp < 0:
-			fmt.Printf("Note: -%s %d is below 0; clamped to 0.\n", name, *zp)
-			*zp = 0
-		case *zp > maxSupportedZoom:
-			fmt.Printf("Note: -%s %d exceeds the supported maximum z%d; clamped.\n", name, *zp, maxSupportedZoom)
-			*zp = maxSupportedZoom
+	applyClamp := func(name string, zp *int) {
+		v, note := clampZoomValue(name, *zp)
+		*zp = v
+		if note != "" {
+			fmt.Println(note)
 		}
 	}
-	clampZoom("minzoom", minzoom)
-	clampZoom("maxzoom", maxzoom)
+	applyClamp("minzoom", minzoom)
+	applyClamp("maxzoom", maxzoom)
+	if err := validateZoomRange(*minzoom, *maxzoom); err != nil {
+		log.Fatal(err)
+	}
+
+	// Fail fast if the output directory can't be created/written, before the
+	// (possibly long) scan and tiling. Skipped for a dry run, which writes nothing.
+	if !*dryRun {
+		if err := ensureWritableDir(*outputPath); err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	// Honor explicit -minzoom/-maxzoom; otherwise the zoom range is derived per cell
 	// from its S-57 usage band (overview→berthing) in the pre-pass below.
@@ -85,27 +97,11 @@ func main() {
 
 	var bounds *m.Extrema = nil
 	if *boundsFlag != "" {
-		bounds = &m.Extrema{}
-		parts := strings.Split(*boundsFlag, ",")
-		if len(parts) != 4 {
-			log.Fatal("Invalid bounds")
+		b, err := parseBounds(*boundsFlag)
+		if err != nil {
+			log.Fatal(err)
 		}
-		for i, p := range parts {
-			if v, err := strconv.ParseFloat(p, 64); err == nil {
-				switch i {
-				case 0:
-					bounds.W = v
-				case 1:
-					bounds.N = v
-				case 2:
-					bounds.E = v
-				case 3:
-					bounds.S = v
-				}
-			} else {
-				log.Fatal("Invalid bounds")
-			}
-		}
+		bounds = &b
 	}
 
 	var tile *m.TileID = nil
@@ -124,6 +120,11 @@ func main() {
 			log.Fatal("Invalid at")
 		}
 	}
+
+	// Cancel cleanly on Ctrl-C / SIGTERM so an interrupted run stops feeding work
+	// instead of being killed mid-write.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	tiler := s57.NewS57Tiler(datasets)
 
@@ -182,6 +183,13 @@ func main() {
 	// can be very large, so surface the count before the (possibly long) tiling.
 	fmt.Printf("Generating %d tiles\n", grandTotal)
 
+	// A dry run reports the plan (zoom ranges + tile count) and stops before writing,
+	// so a wrong dataset/zoom is caught without committing to a multi-hour run.
+	if *dryRun {
+		fmt.Println("Dry run: no tiles written.")
+		return
+	}
+
 	// Track write failures across all workers. A transient error (e.g. disk full,
 	// EPERM) no longer aborts the whole multi-hour run via log.Fatal; instead we
 	// keep going, surface the first error, count the rest, and exit non-zero at the
@@ -198,6 +206,9 @@ func main() {
 	prog := newProgress(grandTotal, os.Stdout)
 	go prog.run()
 	for _, wu := range work {
+		if ctx.Err() != nil {
+			break
+		}
 		prog.setStage(fmt.Sprintf("%s, Zoom: %d", wu.file.Id, wu.z))
 
 		jobs := make(chan m.TileID, *workers*2)
@@ -220,7 +231,10 @@ func main() {
 			}()
 		}
 		for _, t := range wu.tiles {
-			jobs <- t
+			select {
+			case jobs <- t:
+			case <-ctx.Done():
+			}
 		}
 		close(jobs)
 		wg.Wait()
@@ -230,6 +244,10 @@ func main() {
 	}
 	prog.finish()
 
+	if ctx.Err() != nil {
+		fmt.Fprintln(os.Stderr, "Interrupted; output is incomplete.")
+		os.Exit(130)
+	}
 	if n := atomic.LoadInt64(&failCount); n > 0 {
 		fmt.Fprintf(os.Stderr, "Completed with %d write failure(s); output is incomplete.\n", n)
 		os.Exit(1)
