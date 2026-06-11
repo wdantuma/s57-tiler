@@ -38,12 +38,27 @@ s57-tiler --in <directory of S-57 ENCs> --out <output directory>
 |------|---------|-------------|
 | `-in` | `./charts` | Directory tree of S-57 ENCs (contains `catalog.031`) |
 | `-out` | `./static/charts` | Output directory for vector tiles |
-| `-minzoom` | `9` | Minimum zoom level |
-| `-maxzoom` | `14` | Maximum zoom level |
+| `-minzoom` | per-chart | Override the minimum zoom for every chart (see [Zoom levels](#zoom-levels)) |
+| `-maxzoom` | per-chart | Override the maximum zoom for every chart (clamped to z0–z23) |
 | `-bounds` | — | Limit output to a bounding box: `W,N,E,S` |
 | `-at` | — | Generate only the tile at `lon,lat` |
 | `-workers` | CPUs − 1 | Number of parallel tile workers |
+| `-dry-run` | `false` | Scan and report the tile count, then exit without writing |
 | `-debug` | `false` | Show debug info (don't suppress GDAL errors) |
+
+### Zoom levels
+
+By default (no `-minzoom`/`-maxzoom`), **each chart is tiled to its own native zoom range** —
+from a sensible coarse floor up to the level matching the chart's compilation scale. A small-scale
+overview chart might only go to ~z12, while a large-scale harbour or Inland ENC chart (e.g. 1:2,000)
+is tiled all the way to ~z19, because that's the detail it actually contains. Before tiling, the run
+prints each chart's converting-vs-available range and the total tile count.
+
+Passing `-minzoom` and/or `-maxzoom` overrides this with a fixed range applied to every chart
+(clamped to the supported z0–z23). Use this to cap output: tiling large-scale charts to native zoom
+can produce **a lot** of tiles — a 20-cell Inland ENC set reached ~3.7 million tiles (hours) at
+native z19 versus ~62k capped at z16. Run with `-dry-run` first to see the count, then pass
+`-maxzoom N` to cap it if needed.
 
 ## Building from source
 
