@@ -21,7 +21,7 @@ func TestScaleVisible(t *testing.T) {
 		{"scamax allows when within range", 0, 100000, 150000, true},
 		{"scamax boundary (equal) shows", 0, 70000, 70000, true},
 		{"scamin takes effect even with scamax set", 50000, 200000, 100000, false},
-		{"within both bounds", 50000, 200000, 70000, true},
+		{"within both bounds (scamin>=scale>=scamax)", 200000, 50000, 70000, true},
 	}
 	for _, c := range cases {
 		if got := scaleVisible(c.scamin, c.scamax, c.scale); got != c.want {
