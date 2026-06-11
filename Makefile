@@ -1,5 +1,5 @@
 VERSION=0.0.6
-IMAGE ?= wdantuma/s57-tiler:latest
+IMAGE ?= wdantuma/s57-tiler:$(VERSION)
 
 # All Go sources (plus module files) — build targets depend on these so they
 # rebuild when code changes instead of being treated as permanently up-to-date.
@@ -8,8 +8,9 @@ GOFILES := $(shell find . -name '*.go') go.mod go.sum
 .PHONY: build linux-arm64 darwin-arm64 docker-buildx runs57tiler test bench clean
 
 # Native host build (links the locally-installed GDAL via cgo/pkg-config).
+# -trimpath keeps the build reproducible, matching the cross-compile targets.
 build/s57-tiler: $(GOFILES)
-	go build -o build/s57-tiler ./cmd/s57-tiler
+	go build -trimpath -o build/s57-tiler ./cmd/s57-tiler
 
 build: build/s57-tiler
 
