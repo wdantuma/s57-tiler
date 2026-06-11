@@ -5,6 +5,22 @@ import (
 	"testing"
 )
 
+// TestSummarizeZoomsPluralization: one chart reads "1 chart", more than one reads
+// "N charts".
+func TestSummarizeZoomsPluralization(t *testing.T) {
+	one, _ := summarizeZooms([]zoomReport{{convMin: 9, convMax: 14, availMin: 9, availMax: 14}})
+	if len(one) != 1 || !strings.Contains(one[0], "1 chart:") {
+		t.Errorf("singular line = %v, want to contain \"1 chart:\"", one)
+	}
+	two, _ := summarizeZooms([]zoomReport{
+		{convMin: 9, convMax: 14, availMin: 9, availMax: 14},
+		{convMin: 9, convMax: 14, availMin: 9, availMax: 14},
+	})
+	if len(two) != 1 || !strings.Contains(two[0], "2 charts:") {
+		t.Errorf("plural line = %v, want to contain \"2 charts:\"", two)
+	}
+}
+
 // TestSummarizeZoomsSubsetHint: a group whose converting max is below its
 // available max is flagged as a subset, shows the available range, and triggers
 // a -maxzoom hint naming the envelope max. Identical ranges collapse to one line.
@@ -19,7 +35,7 @@ func TestSummarizeZoomsSubsetHint(t *testing.T) {
 	if len(lines) != 2 {
 		t.Fatalf("expected 2 grouped lines, got %d: %v", len(lines), lines)
 	}
-	if !strings.Contains(lines[0], "2 chart(s)") || !strings.Contains(lines[0], "z12-z16") {
+	if !strings.Contains(lines[0], "2 charts") || !strings.Contains(lines[0], "z12-z16") {
 		t.Errorf("group line 0 = %q, want 2 charts converting z12-z16", lines[0])
 	}
 	if !strings.Contains(lines[0], "available z12-z19") {
