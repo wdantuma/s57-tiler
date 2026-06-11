@@ -108,9 +108,9 @@ func (s *s57Tiler) Close() {
 
 func NewS57Tiler(datasets []dataset.Dataset) *s57Tiler {
 	src := gdal.CreateSpatialReference("")
-	src.FromEPSG(4326)
+	_ = src.FromEPSG(4326) // hardcoded EPSG codes don't fail
 	dst := gdal.CreateSpatialReference("")
-	dst.FromEPSG(3857)
+	_ = dst.FromEPSG(3857)
 
 	return &s57Tiler{
 		srcRef:    src,
@@ -409,18 +409,14 @@ func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tile m.TileID, tileBounds
 				switch fieldType {
 				case gdal.FT_StringList, gdal.FT_IntegerList, gdal.FT_Integer64List, gdal.FT_RealList:
 					value = decodeListString(feature.FieldAsString(i))
-					break
 				case gdal.FT_Integer:
 					vt = VT_INT
 					value = feature.FieldAsInteger64(i)
-					break
 				case gdal.FT_Real:
 					vt = VT_FLOAT
 					value = feature.FieldAsFloat64(i)
-					break
 				default:
 					value = feature.FieldAsString(i)
-					break
 				}
 				if value != "" {
 					if _, ok := s.keysMap[key]; !ok {
@@ -431,13 +427,10 @@ func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tile m.TileID, tileBounds
 					switch vt {
 					case VT_STRING:
 						vmk = fmt.Sprintf("%d_%s", vt, value)
-						break
 					case VT_INT:
 						vmk = fmt.Sprintf("%d_%d", vt, value)
-						break
 					case VT_FLOAT:
 						vmk = fmt.Sprintf("%d_%f", vt, value)
-						break
 					}
 
 					if _, ok := s.valuesMap[vmk]; !ok {
@@ -616,22 +609,17 @@ func (s *s57Tiler) GenerateTile(outPath string, file dataset.File, tile m.TileID
 		}
 		if len(mvtLayer.Features) > 0 {
 			// keys
-			for _, k := range s.keys {
-				mvtLayer.Keys = append(mvtLayer.Keys, k)
-			}
+			mvtLayer.Keys = append(mvtLayer.Keys, s.keys...)
 			// values
 			for _, v := range s.values {
 				value := vectortile.Tile_Value{}
 				switch v.fieldType {
 				case VT_STRING:
 					value.StringValue = ref.String(v.value)
-					break
 				case VT_FLOAT:
 					value.DoubleValue = ref.Float64(v.value)
-					break
 				case VT_INT:
 					value.IntValue = ref.Int64((v.value))
-					break
 				}
 
 				mvtLayer.Values = append(mvtLayer.Values, &value)

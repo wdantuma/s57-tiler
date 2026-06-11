@@ -1,7 +1,6 @@
 package dataset
 
 import (
-	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -154,7 +153,7 @@ func GetS57Datasets(path string) ([]Dataset, error) {
 				}
 				defer f.Close()
 				var l iso8211.LeadRecord
-				l.Read(f)
+				_ = l.Read(f)
 				var d iso8211.DataRecord
 				d.Lead = &l
 				for d.Read(f) == nil {
@@ -197,7 +196,7 @@ func GetS57Datasets(path string) ([]Dataset, error) {
 
 			}
 		} else {
-			return errors.New(fmt.Sprintf("Invalid path:%s", path))
+			return fmt.Errorf("invalid path: %s", path)
 		}
 
 		return nil

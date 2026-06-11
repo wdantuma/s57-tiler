@@ -1,0 +1,21 @@
+# golangci-lint v2 configuration — intentionally lean: the standard linter set
+# (errcheck, govet, ineffassign, staticcheck, unused). Expand as desired.
+version: "2"
+
+linters:
+  settings:
+    errcheck:
+      # Best-effort / fire-and-forget calls whose error is genuinely not actionable.
+      exclude-functions:
+        - (*os.File).Close
+        - os.Setenv
+        - os.Remove
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+  exclusions:
+    rules:
+      # Tests legitimately discard return values (e.g. GenerateTile, hash writers).
+      - path: _test\.go
+        linters:
+          - errcheck
