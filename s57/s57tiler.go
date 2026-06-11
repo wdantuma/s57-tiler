@@ -6,7 +6,6 @@ package s57
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -522,7 +521,7 @@ func getBounds(file dataset.File) []float32 {
 	return bounds
 }
 
-func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset, file dataset.File, minZoom int, maxZoom int) {
+func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset, file dataset.File, minZoom int, maxZoom int) error {
 	path := filepath.Join(outPath, file.Id, "metadata.json")
 	bounds := getBounds(file)
 	// Fall back to the cell's catalog long-name when the dataset has no description,
@@ -533,17 +532,22 @@ func (s *s57Tiler) GenerateMetaData(outPath string, dataset dataset.Dataset, fil
 	}
 	metaData := charts.ChartMetaData{Id: file.Id, Name: file.Id, Description: description, Created: time.Now().UTC(), Type: "S-57", Format: "pbf", MinZoom: minZoom, MaxZoom: maxZoom, Bounds: bounds}
 
-	out, _ := json.Marshal(metaData)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		os.MkdirAll(filepath.Dir(path), 0700) // Create your file
-	}
-	err := os.WriteFile(path, out, 0644)
+	out, err := json.Marshal(metaData)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("marshal metadata for %s: %w", file.Id, err)
 	}
+	// MkdirAll is a no-op when the directory already exists, so call it
+	// unconditionally rather than guarding with a Stat.
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		return fmt.Errorf("create directory for %s: %w", path, err)
+	}
+	if err := os.WriteFile(path, out, 0644); err != nil {
+		return fmt.Errorf("write %s: %w", path, err)
+	}
+	return nil
 }
 
-func (s *s57Tiler) GenerateTile(outPath string, file dataset.File, tile m.TileID) {
+func (s *s57Tiler) GenerateTile(outPath string, file dataset.File, tile m.TileID) error {
 	mvtTile := vectortile.Tile{}
 
 	//allowedLayers := []string{"BOYLAT", "BOYCAR", "BOYINB", "BOYISD", "BOYSAW", "BOYSPP", "BCNLAT", "BCNCAR", "BCNISN", "BCNSAW", "BCNSPP", "LIGHTS", "DEPARE", "SEAARE", "COALNE", "RESARE", "UNSARE", "LNDARE", "BUAARE", "NAVLNE", "RECTRC", "CANALS"}
@@ -606,15 +610,24 @@ func (s *s57Tiler) GenerateTile(outPath string, file dataset.File, tile m.TileID
 
 	path := filepath.Join(outPath, file.Id, strconv.Itoa(int(tile.Z)), strconv.Itoa(int(tile.X)), strconv.Itoa(int(tile.Y))) + ".pbf"
 	if len(mvtTile.Layers) > 0 {
-		out, _ := proto.Marshal(&mvtTile)
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			os.MkdirAll(filepath.Dir(path), 0700) // Create your file
-		}
-		err := os.WriteFile(path, out, 0644)
+		out, err := proto.Marshal(&mvtTile)
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("marshal tile %s: %w", path, err)
+		}
+		// MkdirAll is a no-op when the directory already exists, so call it
+		// unconditionally rather than guarding with a Stat.
+		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+			return fmt.Errorf("create directory for %s: %w", path, err)
+		}
+		if err := os.WriteFile(path, out, 0644); err != nil {
+			return fmt.Errorf("write %s: %w", path, err)
 		}
 	} else {
-		os.Remove(path)
+		// Best-effort cleanup of a now-empty tile; a missing file is fine, any
+		// other failure is surfaced so a stale invalid tile can't linger silently.
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("remove empty tile %s: %w", path, err)
+		}
 	}
+	return nil
 }
