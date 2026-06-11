@@ -28,8 +28,9 @@ func main() {
 	}
 	driver.Register()
 
-	// GDAL S-57 reader options (incl. SOUNDG handling) are configured in the dataset
-	// package's init, so they apply consistently to the CLI and tests.
+	// Configure the GDAL S-57 reader options (incl. SOUNDG handling) before any
+	// datasource is opened.
+	dataset.ConfigureGDAL()
 
 	outputPath := flag.String("out", "./static/charts", "Output directory for vector tiles")
 	inputPath := flag.String("in", "./charts", "Input path S-57 ENC's")
