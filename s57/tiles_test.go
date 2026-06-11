@@ -26,14 +26,10 @@ func TestTilesForExtents(t *testing.T) {
 		t.Errorf("no extents = %d tiles, want 0", len(none))
 	}
 
-	// At z1 a single point lands on exactly one tile, in range.
-	one := TilesForExtents([]m.Extrema{{W: 0.1, N: 0.1, E: 0.2, S: 0.0}}, 1)
-	if len(one) != 1 {
-		t.Errorf("tiny extent at z1 = %d tiles, want 1", len(one))
-	}
-	for _, tile := range one {
-		if tile.Z != 1 || tile.X < 0 || tile.X > 1 || tile.Y < 0 || tile.Y > 1 {
-			t.Errorf("z1 tile %+v out of [0,2) grid", tile)
-		}
+	// A small box well inside the NW quadrant lands on exactly the one z1 tile {0,0,1}
+	// (z1 splits the world into 2x2: col 0 = west of 0°, row 0 = north of the equator).
+	one := TilesForExtents([]m.Extrema{{W: -100, N: 40, E: -99, S: 39}}, 1)
+	if len(one) != 1 || one[0] != (m.TileID{X: 0, Y: 0, Z: 1}) {
+		t.Errorf("NW box at z1 = %+v, want [{0 0 1}]", one)
 	}
 }

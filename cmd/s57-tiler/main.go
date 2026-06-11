@@ -138,6 +138,7 @@ func main() {
 	for _, ds := range datasets {
 		for _, file := range ds.Files {
 			fminzoom, fmaxzoom := *minzoom, *maxzoom
+			var extents []m.Extrema
 			if tile == nil {
 				zr := dataset.CellZoomRange(file)
 				if !userSetZoom && bounds == nil {
@@ -149,20 +150,20 @@ func main() {
 					availMin: zr.Min,
 					availMax: zr.Max,
 				})
+				if bounds != nil {
+					extents = []m.Extrema{*bounds}
+				} else {
+					// The full-scan layer extents are the same for every zoom, so
+					// compute them once per file instead of reopening the cell per zoom.
+					extents = tiler.FileExtents(file)
+				}
 			}
 			for z := fminzoom; z <= fmaxzoom; z++ {
-				var tiles map[string]m.TileID
+				var ids []m.TileID
 				if tile != nil {
-					tiles = map[string]m.TileID{"tile": *tile}
-				} else if bounds != nil {
-					tiles = tiler.GetTilesForBounds(nil, *bounds, z)
+					ids = []m.TileID{*tile}
 				} else {
-					tiles = tiler.GetTiles(file, z)
-				}
-
-				ids := make([]m.TileID, 0, len(tiles))
-				for _, t := range tiles {
-					ids = append(ids, t)
+					ids = s57.TilesForExtents(extents, z)
 				}
 				work = append(work, workUnit{dataset: ds, file: file, z: z, tiles: ids, minzoom: fminzoom, maxzoom: fmaxzoom})
 				grandTotal += int64(len(ids))
