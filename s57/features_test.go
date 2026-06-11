@@ -307,3 +307,40 @@ func valuesForKey(layer *vectortile.Tile_Layer, key string) []string {
 	}
 	return out
 }
+
+// TestInlandCellRendersAtZoom is the end-to-end guard for the blank Inland-ENC
+// bug. It exercises the full pipeline for a large-scale (1:2000, DSID_INTU=7)
+// cell — nested-catalog discovery through tiling — and asserts it emits feature
+// geometry at the higher zoom CellZoom now selects. The depth contours it checks
+// carry SCAMIN ~15000, the detail that was missing when these cells were tiled
+// only to z14.
+func TestInlandCellRendersAtZoom(t *testing.T) {
+	if _, err := os.Stat(sampleENC); err != nil {
+		t.Skipf("sample ENC not present at %s: %v", sampleENC, err)
+	}
+	datasets, err := dataset.GetS57Datasets(sampleENC)
+	if err != nil {
+		t.Fatalf("GetS57Datasets: %v", err)
+	}
+
+	var cell *dataset.File
+	for di := range datasets {
+		for fi := range datasets[di].Files {
+			if datasets[di].Files[fi].Id == "1R7WAD01" {
+				cell = &datasets[di].Files[fi]
+			}
+		}
+	}
+	if cell == nil {
+		t.Skip("inland cell 1R7WAD01 not present in sample ENC")
+	}
+
+	const layerName = "DEPCNT" // depth contours: SCAMIN-gated, the missing detail
+	lon, lat, ok := firstFeatureCoord(cell, layerName)
+	if !ok {
+		t.Skipf("no %s feature in %s", layerName, cell.Id)
+	}
+	if l := findLayerInTiles(t, datasets, cell, lon, lat, layerName); l == nil {
+		t.Fatalf("inland cell %s produced no %s features at any zoom up to 16", cell.Id, layerName)
+	}
+}

@@ -78,6 +78,8 @@ func Scale(tileid TileID) int32 {
 		return 70000
 	case 14:
 		return 35000
+	case 15:
+		return 24000
 	case 16:
 		return 15000
 	case 17:
@@ -97,6 +99,29 @@ func Scale(tileid TileID) int32 {
 	default:
 		return 0
 	}
+}
+
+// ZoomForScale returns the finest (highest) web-map zoom whose mapped scale
+// denominator (see Scale) is still >= the given chart compilation-scale
+// denominator. It is the inverse of Scale: a 1:2000 chart (scaleDenominator =
+// 2000) resolves to the zoom its detail is authored for. It is driven off the
+// same Scale table so the mapping lives in exactly one place.
+//
+// Scale denominators decrease as zoom increases, so we walk zoom upward and stop
+// at the first level whose Scale is <= the requested denominator. A non-positive
+// denominator (e.g. missing DSPM_CSCL) yields 0; a denominator finer than the
+// table's deepest entry clamps to that deepest zoom.
+func ZoomForScale(scaleDenominator int32) uint64 {
+	if scaleDenominator <= 0 {
+		return 0
+	}
+	const maxTableZoom = 23 // deepest zoom Scale defines
+	for z := uint64(0); z <= maxTableZoom; z++ {
+		if Scale(TileID{Z: z}) <= scaleDenominator {
+			return z
+		}
+	}
+	return maxTableZoom
 }
 
 // Returns the (x, y, z) tile.
