@@ -151,6 +151,9 @@ func Tilestr(tileid TileID) string {
 // From a tilestr representation back to a tileid
 func Strtile(tileid string) TileID {
 	vals := strings.Split(tileid, "/")
+	if len(vals) < 3 {
+		return TileID{}
+	}
 	x, _ := strconv.ParseInt(vals[0], 0, 64)
 	y, _ := strconv.ParseInt(vals[1], 0, 64)
 	z, _ := strconv.ParseInt(vals[2], 0, 64)
@@ -201,6 +204,9 @@ func TileFromString(val string) TileID {
 		vals = strings.Split(val, " ")
 	}
 
+	if len(vals) < 3 {
+		return TileID{}
+	}
 	x, _ := strconv.ParseInt(vals[0], 0, 64)
 	y, _ := strconv.ParseInt(vals[1], 0, 64)
 	z, _ := strconv.ParseInt(vals[2], 0, 64)

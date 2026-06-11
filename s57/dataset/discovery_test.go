@@ -18,11 +18,11 @@ func field1(subfields ...interface{}) iso8211.DataRecord {
 
 func TestCatalogCellRef(t *testing.T) {
 	cases := []struct {
-		name             string
-		rec              iso8211.DataRecord
-		wantFile         string
-		wantTitle        string
-		wantOK           bool
+		name      string
+		rec       iso8211.DataRecord
+		wantFile  string
+		wantTitle string
+		wantOK    bool
 	}{
 		{
 			name:      "valid BIN .000 row",
@@ -73,11 +73,11 @@ func TestSafeCellID(t *testing.T) {
 	}{
 		{"/data/ENC_ROOT/US4WA1JJ.000", "US4WA1JJ", true},
 		{"/data/1R7WAD01.000", "1R7WAD01", true},
-		{"deep/dir/B.000", "B", true},   // a dir separator in the path is fine; the id is the base
-		{"/data/...000", "", false},     // id would be ".."  -> traversal
-		{"/data/..000", "", false},      // id would be "."
-		{"/data/.000", "", false},       // id would be empty
-		{"/data/ab", "", false},         // shorter than the ".000" suffix
+		{"deep/dir/B.000", "B", true}, // a dir separator in the path is fine; the id is the base
+		{"/data/...000", "", false},   // id would be ".."  -> traversal
+		{"/data/..000", "", false},    // id would be "."
+		{"/data/.000", "", false},     // id would be empty
+		{"/data/ab", "", false},       // shorter than the ".000" suffix
 	}
 	for _, c := range cases {
 		got, ok := safeCellID(c.path)
