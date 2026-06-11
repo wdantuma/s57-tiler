@@ -5,7 +5,7 @@ IMAGE ?= wdantuma/s57-tiler:$(VERSION)
 # rebuild when code changes instead of being treated as permanently up-to-date.
 GOFILES := $(shell find . -name '*.go') go.mod go.sum
 
-.PHONY: build linux-arm64 darwin-arm64 docker-buildx runs57tiler test bench clean
+.PHONY: build linux-arm64 darwin-arm64 docker-buildx runs57tiler test bench lint clean
 
 # Native host build (links the locally-installed GDAL via cgo/pkg-config).
 # -trimpath keeps the build reproducible, matching the cross-compile targets.
@@ -62,6 +62,13 @@ test:
 #   make bench | tee /tmp/new.txt   # then: benchstat /tmp/old.txt /tmp/new.txt
 bench:
 	go test -run='^$$' -bench=. -benchmem -count=10 ./s57/...
+
+# Lint with the same pinned golangci-lint the CI uses. `go run` fetches and caches
+# it on first use, so no separate install or PATH setup is needed. Needs the GDAL
+# toolchain (cgo build), like the tests.
+GOLANGCI_LINT_VERSION ?= v2.12.2
+lint:
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION) run ./...
 
 clean:
 	go clean
