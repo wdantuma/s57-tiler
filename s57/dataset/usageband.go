@@ -5,18 +5,19 @@ import (
 	m "github.com/wdantuma/s57-tiler/s57/mercantile"
 )
 
-// dsidInfo reads the cell's DSID record once and returns the usage band
-// (DSID_INTU) and the compilation-scale denominator (DSPM_CSCL); each is 0 when
-// absent. The DSID layer is geometry-less and therefore excluded from
-// File.Layers, so we open the datasource and scan layers by index.
-func dsidInfo(file File) (intu int, cscl int) {
-	ds := gdal.OpenDataSource(file.Path, 0)
-	defer ds.Destroy()
+// readDSID reads the cell's DSID record from an already-open datasource and
+// returns the usage band (DSID_INTU), the compilation-scale denominator
+// (DSPM_CSCL), and whether a DSID record was found. The values are cached on the
+// File at discovery so the zoom derivation never has to reopen the cell. The DSID
+// layer is geometry-less and therefore excluded from File.Layers, so we scan
+// layers by index.
+func readDSID(ds gdal.DataSource) (intu int, cscl int, found bool) {
 	for i := 0; i < ds.LayerCount(); i++ {
 		layer := ds.LayerByIndex(i)
 		if layer.Name() != "DSID" {
 			continue
 		}
+		found = true
 		layer.ResetReading()
 		feat := layer.NextFeature()
 		if feat != nil {
@@ -30,7 +31,7 @@ func dsidInfo(file File) (intu int, cscl int) {
 		}
 		break
 	}
-	return intu, cscl
+	return intu, cscl, found
 }
 
 // resolveBand maps a cell's DSID_INTU and id to a standard S-57 usage band
@@ -52,8 +53,7 @@ func resolveBand(intu int, id string) int {
 // the authoritative DSID_INTU value from the cell's DSID record, falls back to
 // the navigational-purpose digit in the cell name, and returns 0 when unknown.
 func UsageBand(file File) int {
-	intu, _ := dsidInfo(file)
-	return resolveBand(intu, file.Id)
+	return resolveBand(file.Intu, file.Id)
 }
 
 // BandZoom maps a usage band to a default web-map zoom range. The values are a
@@ -87,16 +87,17 @@ type ZoomRange struct {
 	Min, Max int
 }
 
-// CellZoomRange returns a cell's default zoom range from a single DSID read. The
-// minimum comes from the usage band (overview charts start coarse, harbour
-// charts start fine); for an inland/unknown band it is a fixed floor. The
-// maximum is the cell's native zoom — the finest level matching its compilation
-// scale (DSPM_CSCL) — and is never capped below the band default. So a 1:2000
-// inland chart tiles up to z19 and a 1:20000 approach chart up to z16.
+// CellZoomRange returns a cell's default zoom range from its cached DSID values
+// (read once at discovery). The minimum comes from the usage band (overview
+// charts start coarse, harbour charts start fine); for an inland/unknown band it
+// is a fixed floor. The maximum is the cell's native zoom — the finest level
+// matching its compilation scale (DSPM_CSCL) — and is never capped below the band
+// default. So a 1:2000 inland chart tiles up to z19 and a 1:20000 approach chart
+// up to z16.
 func CellZoomRange(file File) ZoomRange {
 	const inlandFloor = 12 // coarse floor for inland/large-scale cells (no usage band)
-	intu, cscl := dsidInfo(file)
-	band := resolveBand(intu, file.Id)
+	cscl := file.Cscl
+	band := resolveBand(file.Intu, file.Id)
 
 	var minZ, maxZ int
 	switch {
