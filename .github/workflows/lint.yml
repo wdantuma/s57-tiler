@@ -1,0 +1,41 @@
+name: lint
+
+# Runs golangci-lint on pull requests (and master). The cgo binding builds via
+# `#cgo pkg-config: gdal`, so linting needs the GDAL dev headers just like the test
+# job. golangci-lint is pinned (installed with go install) to the version the lean
+# .golangci.yml was validated against.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  golangci:
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
+    steps:
+      - name: Install GDAL and build tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            libgdal-dev pkg-config build-essential git ca-certificates
+
+      - uses: actions/checkout@v6
+
+      - name: Mark the workspace safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+          cache: true
+
+      - name: Install golangci-lint
+        run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
+
+      - name: Lint
+        run: "$(go env GOPATH)/bin/golangci-lint run ./..."

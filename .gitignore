@@ -8,3 +8,6 @@ go.work
 /charts_out
 
 __debug_bin
+
+# macOS Finder metadata
+.DS_Store
