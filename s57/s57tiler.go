@@ -207,8 +207,10 @@ func IsClockWise(geom *gdal.Geometry) bool {
 }
 
 func (s *s57Tiler) toMvtLinestringGeometry(geometry *gdal.Geometry, tileBounds m.Extrema, ccw bool) []uint32 {
-	mvtGeometry := make([]uint32, 0)
 	count := geometry.PointCount()
+	// Each vertex emits 2 ints, plus the moveto/lineto commands (and +1 of headroom
+	// for the polygon close-path the caller may append) — pre-size to avoid regrowth.
+	mvtGeometry := make([]uint32, 0, 2*count+4)
 
 	if count > 1 {
 		index := 0
@@ -254,8 +256,8 @@ func (s *s57Tiler) toMvtPolygonGeometry(geometry *gdal.Geometry, tileBounds m.Ex
 }
 
 func (s *s57Tiler) toMvtPointGeometry(geometry *gdal.Geometry, tileBounds m.Extrema) []uint32 {
-	mvtGeometry := make([]uint32, 0)
 	count := geometry.PointCount()
+	mvtGeometry := make([]uint32, 0, 2*count+1)
 	mvtGeometry = append(mvtGeometry, getCommand(1, count))
 	for i := 0; i < count; i++ {
 		x, y, _ := geometry.Point(i)
@@ -276,7 +278,9 @@ func (s *s57Tiler) toMvtGeometry(featureType vectortile.Tile_GeomType, geometry 
 	s.lasty = 0
 	mvtGeometry := make([]uint32, 0)
 
-	tolerance := TILE_DIMENSION_AT_0 / math.Pow(2, float64(tile.Z)) / 256 * SIMPLIFICATION_FACTOR
+	// 2^Z is exact for the supported zooms (Z<=23), so a bit shift avoids math.Pow
+	// per feature while producing the identical tolerance.
+	tolerance := TILE_DIMENSION_AT_0 / float64(uint64(1)<<tile.Z) / 256 * SIMPLIFICATION_FACTOR
 
 	simplifiedGeometry := geometry.SimplifyPreservingTopology(tolerance)
 	defer simplifiedGeometry.Destroy()
@@ -508,31 +512,42 @@ func (s *s57Tiler) GetFeatures(layer gdal.Layer, tile m.TileID, tileBounds m.Ext
 	return features
 }
 
-func (s *s57Tiler) GetTilesForBounds(tiles map[string]m.TileID, bounds m.Extrema, zoomLevel int) map[string]m.TileID {
-	if tiles == nil {
-		tiles = make(map[string]m.TileID)
-	}
-	ulTile := m.Tile(bounds.W, bounds.N, zoomLevel)
-	lrTile := m.Tile(bounds.E, bounds.S, zoomLevel)
-	for col := ulTile.X; col <= lrTile.X; col++ {
-		for row := ulTile.Y; row <= lrTile.Y; row++ {
-			key := fmt.Sprintf("%d,%d,%d", col, row, zoomLevel)
-			tile := m.TileID{X: col, Y: row, Z: uint64(zoomLevel)}
-			tiles[key] = tile
-		}
-	}
-	return tiles
-}
-
-func (s *s57Tiler) GetTiles(file dataset.File, zoomLevel int) map[string]m.TileID {
-	tiles := make(map[string]m.TileID)
+// FileExtents opens the cell once and returns each layer's extent (the expensive
+// full-scan Extent(true)). The pre-pass derives every zoom's tile set from these
+// cached extents via TilesForExtents, instead of reopening and re-scanning the
+// cell once per zoom.
+func (s *s57Tiler) FileExtents(file dataset.File) []m.Extrema {
 	datasource := gdal.OpenDataSource(file.Path, 0)
 	defer datasource.Destroy()
+	var extents []m.Extrema
 	for i := 0; i < datasource.LayerCount(); i++ {
 		l := datasource.LayerByIndex(i)
 		ext, err := l.Extent(true)
 		if err == nil {
-			tiles = s.GetTilesForBounds(tiles, m.Extrema{W: ext.MinX(), N: ext.MaxY(), E: ext.MaxX(), S: ext.MinY()}, zoomLevel)
+			extents = append(extents, m.Extrema{W: ext.MinX(), N: ext.MaxY(), E: ext.MaxX(), S: ext.MinY()})
+		}
+	}
+	return extents
+}
+
+// TilesForExtents returns the deduplicated tiles covering the given extents at
+// zoomLevel, in deterministic (column-major) order. Dedup is keyed by TileID
+// directly, avoiding a formatted string allocation per tile in a loop that can run
+// into the millions.
+func TilesForExtents(extents []m.Extrema, zoomLevel int) []m.TileID {
+	seen := make(map[m.TileID]struct{})
+	tiles := make([]m.TileID, 0)
+	for _, b := range extents {
+		ulTile := m.Tile(b.W, b.N, zoomLevel)
+		lrTile := m.Tile(b.E, b.S, zoomLevel)
+		for col := ulTile.X; col <= lrTile.X; col++ {
+			for row := ulTile.Y; row <= lrTile.Y; row++ {
+				t := m.TileID{X: col, Y: row, Z: uint64(zoomLevel)}
+				if _, ok := seen[t]; !ok {
+					seen[t] = struct{}{}
+					tiles = append(tiles, t)
+				}
+			}
 		}
 	}
 	return tiles
