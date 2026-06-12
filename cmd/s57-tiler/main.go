@@ -28,8 +28,9 @@ func main() {
 	}
 	driver.Register()
 
-	// GDAL S-57 reader options (incl. SOUNDG handling) are configured in the dataset
-	// package's init, so they apply consistently to the CLI and tests.
+	// Configure the GDAL S-57 reader options (incl. SOUNDG handling) before any
+	// datasource is opened.
+	dataset.ConfigureGDAL()
 
 	outputPath := flag.String("out", "./static/charts", "Output directory for vector tiles")
 	inputPath := flag.String("in", "./charts", "Input path S-57 ENC's")
@@ -227,7 +228,8 @@ func main() {
 				workerTiler := s57.NewS57Tiler(datasets)
 				defer workerTiler.Close()
 				for t := range jobs {
-					if err := workerTiler.GenerateTile(*outputPath, fw.file, t); err != nil {
+					err := runTile(func() error { return workerTiler.GenerateTile(*outputPath, fw.file, t) })
+					if err != nil {
 						recordFailure(fmt.Sprintf("tile %s z%d %d/%d", fw.file.Id, t.Z, t.X, t.Y), err)
 					}
 					prog.inc()
@@ -251,6 +253,18 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Completed with %d write failure(s); output is incomplete.\n", n)
 		os.Exit(1)
 	}
+}
+
+// runTile runs do, converting a panic (e.g. from a pathological geometry in the
+// GDAL pipeline) into an error so a single bad tile is recorded as a failure and
+// the run continues, rather than crashing the whole multi-hour job.
+func runTile(do func() error) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic: %v", r)
+		}
+	}()
+	return do()
 }
 
 // fileWork describes the tiling for one cell: its converting zoom range and the

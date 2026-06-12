@@ -13,14 +13,16 @@ import (
 	m "github.com/wdantuma/s57-tiler/s57/mercantile"
 )
 
-// init configures the GDAL S-57 reader. These are process-global GDAL options and
-// must be set before any datasource is opened, so they live here (imported by both
-// the CLI and the tests) rather than in main.
+// ConfigureGDAL sets the process-global GDAL S-57 reader options. It must be called
+// once before any datasource is opened — the CLI calls it at startup, and test
+// packages call it from TestMain. It replaces an init() so that merely importing
+// this package no longer mutates the process environment as a side effect (which
+// was a test-ordering / library-purity hazard).
 //
 //   - SPLIT_MULTIPOINT/ADD_SOUNDG_DEPTH: emit each depth sounding as its own 3D point
 //     feature with a real DEPTH attribute (otherwise SOUNDG is a multipoint whose depth
 //     lives only in the geometry Z and is lost during tiling).
-func init() {
+func ConfigureGDAL() {
 	os.Setenv("OGR_S57_OPTIONS", "SPLIT_MULTIPOINT=ON,ADD_SOUNDG_DEPTH=ON")
 	os.Setenv("OGR_GEOMETRY_ACCEPT_UNCLOSED_RING", "NO")
 }

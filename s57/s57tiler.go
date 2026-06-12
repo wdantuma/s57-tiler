@@ -9,6 +9,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -460,23 +461,29 @@ func (s *s57Tiler) toMvtFeature(feature *gdal.Feature, tile m.TileID, tileBounds
 }
 
 func includeFeatureInTile(feature gdal.Feature, tile m.TileID) bool {
-
-	scale := m.Scale(tile)
-	scaminIndex := feature.FieldIndex("SCAMIN")
-	if scaminIndex >= 0 {
-		scamin := feature.FieldAsFloat64(scaminIndex)
-		if scamin != 0 && scamin < float64(scale) {
-			return false
-		}
+	var scamin, scamax float64
+	if idx := feature.FieldIndex("SCAMIN"); idx >= 0 {
+		scamin = feature.FieldAsFloat64(idx)
 	}
-	scamaxIndex := feature.FieldIndex("SCAMAX")
-	if scamaxIndex >= 0 {
-		scamax := feature.FieldAsFloat64(scamaxIndex)
-		if scamax != 0 && scamax > float64(scale) {
-			return false
-		}
+	if idx := feature.FieldIndex("SCAMAX"); idx >= 0 {
+		scamax = feature.FieldAsFloat64(idx)
 	}
+	return scaleVisible(scamin, scamax, m.Scale(tile))
+}
 
+// scaleVisible reports whether a feature with the given SCAMIN/SCAMAX (0 = unset)
+// is shown at the tile's scale denominator. The feature is hidden when displayed
+// below its minimum scale (scamin < scale) or above its maximum scale
+// (scamax > scale). Split out as a pure function so the boundary logic — whose
+// failure mode is silently hiding/showing features at the wrong zoom — is unit
+// tested without a GDAL feature.
+func scaleVisible(scamin, scamax float64, scale int32) bool {
+	if scamin != 0 && scamin < float64(scale) {
+		return false
+	}
+	if scamax != 0 && scamax > float64(scale) {
+		return false
+	}
 	return true
 }
 
@@ -611,7 +618,16 @@ func (s *s57Tiler) GenerateTile(outPath string, file dataset.File, tile m.TileID
 	// generates (released by Close()), instead of reopening the S-57 cell each time.
 	datasource := s.datasource(file.Path)
 
-	for layerName, layer := range file.Layers {
+	// Iterate layers in a stable order so the encoded .pbf is byte-deterministic.
+	// Go map iteration over file.Layers is randomized, which otherwise makes the
+	// tile bytes vary run-to-run even when the decoded content is identical.
+	layerNames := make([]string, 0, len(file.Layers))
+	for layerName := range file.Layers {
+		layerNames = append(layerNames, layerName)
+	}
+	sort.Strings(layerNames)
+	for _, layerName := range layerNames {
+		layer := file.Layers[layerName]
 		ln := layerName
 		var version uint32 = 2
 		var extent uint32 = TILE_EXTENT
