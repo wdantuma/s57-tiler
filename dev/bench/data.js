@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781273218238,
+  "lastUpdate": 1781273249351,
   "repoUrl": "https://github.com/wdantuma/s57-tiler",
   "entries": {
     "Benchmark": [
@@ -11520,6 +11520,1326 @@ window.BENCHMARK_DATA = {
             "value": 2438,
             "unit": "allocs/op",
             "extra": "73 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willem.dantuma@dobs.nl",
+            "name": "Willem Dantuma",
+            "username": "wdantuma"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8a02c09ab6faa04f8263c27183e77e332e1159f0",
+          "message": "Merge pull request #25 from dillan/chore/dx-polish\n\nMerge 4th - Chore: DX polish, tooling, and dead-code clean-up",
+          "timestamp": "2026-06-12T16:04:59+02:00",
+          "tree_id": "9e37ebc59940bab5aa1eb42af572c2f2feeac297",
+          "url": "https://github.com/wdantuma/s57-tiler/commit/8a02c09ab6faa04f8263c27183e77e332e1159f0"
+        },
+        "date": 1781273248589,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFileExtents",
+            "value": 13763233,
+            "unit": "ns/op\t   10304 B/op\t      75 allocs/op",
+            "extra": "84 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - ns/op",
+            "value": 13763233,
+            "unit": "ns/op",
+            "extra": "84 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - B/op",
+            "value": 10304,
+            "unit": "B/op",
+            "extra": "84 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - allocs/op",
+            "value": 75,
+            "unit": "allocs/op",
+            "extra": "84 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents",
+            "value": 13571658,
+            "unit": "ns/op\t   10304 B/op\t      75 allocs/op",
+            "extra": "84 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - ns/op",
+            "value": 13571658,
+            "unit": "ns/op",
+            "extra": "84 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - B/op",
+            "value": 10304,
+            "unit": "B/op",
+            "extra": "84 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - allocs/op",
+            "value": 75,
+            "unit": "allocs/op",
+            "extra": "84 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents",
+            "value": 13584971,
+            "unit": "ns/op\t   10304 B/op\t      75 allocs/op",
+            "extra": "86 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - ns/op",
+            "value": 13584971,
+            "unit": "ns/op",
+            "extra": "86 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - B/op",
+            "value": 10304,
+            "unit": "B/op",
+            "extra": "86 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - allocs/op",
+            "value": 75,
+            "unit": "allocs/op",
+            "extra": "86 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents",
+            "value": 13721599,
+            "unit": "ns/op\t   10304 B/op\t      75 allocs/op",
+            "extra": "91 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - ns/op",
+            "value": 13721599,
+            "unit": "ns/op",
+            "extra": "91 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - B/op",
+            "value": 10304,
+            "unit": "B/op",
+            "extra": "91 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - allocs/op",
+            "value": 75,
+            "unit": "allocs/op",
+            "extra": "91 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents",
+            "value": 13741338,
+            "unit": "ns/op\t   10304 B/op\t      75 allocs/op",
+            "extra": "82 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - ns/op",
+            "value": 13741338,
+            "unit": "ns/op",
+            "extra": "82 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - B/op",
+            "value": 10304,
+            "unit": "B/op",
+            "extra": "82 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - allocs/op",
+            "value": 75,
+            "unit": "allocs/op",
+            "extra": "82 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents",
+            "value": 13776991,
+            "unit": "ns/op\t   10304 B/op\t      75 allocs/op",
+            "extra": "87 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - ns/op",
+            "value": 13776991,
+            "unit": "ns/op",
+            "extra": "87 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - B/op",
+            "value": 10304,
+            "unit": "B/op",
+            "extra": "87 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFileExtents - allocs/op",
+            "value": 75,
+            "unit": "allocs/op",
+            "extra": "87 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents",
+            "value": 61519,
+            "unit": "ns/op\t    5648 B/op\t      13 allocs/op",
+            "extra": "19502 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - ns/op",
+            "value": 61519,
+            "unit": "ns/op",
+            "extra": "19502 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - B/op",
+            "value": 5648,
+            "unit": "B/op",
+            "extra": "19502 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - allocs/op",
+            "value": 13,
+            "unit": "allocs/op",
+            "extra": "19502 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents",
+            "value": 61900,
+            "unit": "ns/op\t    5648 B/op\t      13 allocs/op",
+            "extra": "19454 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - ns/op",
+            "value": 61900,
+            "unit": "ns/op",
+            "extra": "19454 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - B/op",
+            "value": 5648,
+            "unit": "B/op",
+            "extra": "19454 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - allocs/op",
+            "value": 13,
+            "unit": "allocs/op",
+            "extra": "19454 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents",
+            "value": 61492,
+            "unit": "ns/op\t    5648 B/op\t      13 allocs/op",
+            "extra": "19472 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - ns/op",
+            "value": 61492,
+            "unit": "ns/op",
+            "extra": "19472 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - B/op",
+            "value": 5648,
+            "unit": "B/op",
+            "extra": "19472 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - allocs/op",
+            "value": 13,
+            "unit": "allocs/op",
+            "extra": "19472 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents",
+            "value": 61515,
+            "unit": "ns/op\t    5648 B/op\t      13 allocs/op",
+            "extra": "19484 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - ns/op",
+            "value": 61515,
+            "unit": "ns/op",
+            "extra": "19484 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - B/op",
+            "value": 5648,
+            "unit": "B/op",
+            "extra": "19484 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - allocs/op",
+            "value": 13,
+            "unit": "allocs/op",
+            "extra": "19484 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents",
+            "value": 61801,
+            "unit": "ns/op\t    5648 B/op\t      13 allocs/op",
+            "extra": "19440 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - ns/op",
+            "value": 61801,
+            "unit": "ns/op",
+            "extra": "19440 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - B/op",
+            "value": 5648,
+            "unit": "B/op",
+            "extra": "19440 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - allocs/op",
+            "value": 13,
+            "unit": "allocs/op",
+            "extra": "19440 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents",
+            "value": 61543,
+            "unit": "ns/op\t    5648 B/op\t      13 allocs/op",
+            "extra": "19440 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - ns/op",
+            "value": 61543,
+            "unit": "ns/op",
+            "extra": "19440 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - B/op",
+            "value": 5648,
+            "unit": "B/op",
+            "extra": "19440 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkTilesForExtents - allocs/op",
+            "value": 13,
+            "unit": "allocs/op",
+            "extra": "19440 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom",
+            "value": 464259065,
+            "unit": "ns/op\t 3310608 B/op\t  194816 allocs/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - ns/op",
+            "value": 464259065,
+            "unit": "ns/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - B/op",
+            "value": 3310608,
+            "unit": "B/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - allocs/op",
+            "value": 194816,
+            "unit": "allocs/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom",
+            "value": 473881612,
+            "unit": "ns/op\t 3310965 B/op\t  194821 allocs/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - ns/op",
+            "value": 473881612,
+            "unit": "ns/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - B/op",
+            "value": 3310965,
+            "unit": "B/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - allocs/op",
+            "value": 194821,
+            "unit": "allocs/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom",
+            "value": 465288035,
+            "unit": "ns/op\t 3310490 B/op\t  194814 allocs/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - ns/op",
+            "value": 465288035,
+            "unit": "ns/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - B/op",
+            "value": 3310490,
+            "unit": "B/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - allocs/op",
+            "value": 194814,
+            "unit": "allocs/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom",
+            "value": 469999609,
+            "unit": "ns/op\t 3310378 B/op\t  194813 allocs/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - ns/op",
+            "value": 469999609,
+            "unit": "ns/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - B/op",
+            "value": 3310378,
+            "unit": "B/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - allocs/op",
+            "value": 194813,
+            "unit": "allocs/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom",
+            "value": 462069710,
+            "unit": "ns/op\t 3310528 B/op\t  194817 allocs/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - ns/op",
+            "value": 462069710,
+            "unit": "ns/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - B/op",
+            "value": 3310528,
+            "unit": "B/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - allocs/op",
+            "value": 194817,
+            "unit": "allocs/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom",
+            "value": 463891483,
+            "unit": "ns/op\t 3310933 B/op\t  194821 allocs/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - ns/op",
+            "value": 463891483,
+            "unit": "ns/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - B/op",
+            "value": 3310933,
+            "unit": "B/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTileMultiZoom - allocs/op",
+            "value": 194821,
+            "unit": "allocs/op",
+            "extra": "3 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile",
+            "value": 131969293,
+            "unit": "ns/op\t  959009 B/op\t   53225 allocs/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - ns/op",
+            "value": 131969293,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - B/op",
+            "value": 959009,
+            "unit": "B/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - allocs/op",
+            "value": 53225,
+            "unit": "allocs/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile",
+            "value": 131169900,
+            "unit": "ns/op\t  959031 B/op\t   53225 allocs/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - ns/op",
+            "value": 131169900,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - B/op",
+            "value": 959031,
+            "unit": "B/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - allocs/op",
+            "value": 53225,
+            "unit": "allocs/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile",
+            "value": 132030604,
+            "unit": "ns/op\t  959019 B/op\t   53225 allocs/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - ns/op",
+            "value": 132030604,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - B/op",
+            "value": 959019,
+            "unit": "B/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - allocs/op",
+            "value": 53225,
+            "unit": "allocs/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile",
+            "value": 131791590,
+            "unit": "ns/op\t  959023 B/op\t   53225 allocs/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - ns/op",
+            "value": 131791590,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - B/op",
+            "value": 959023,
+            "unit": "B/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - allocs/op",
+            "value": 53225,
+            "unit": "allocs/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile",
+            "value": 130132023,
+            "unit": "ns/op\t  958906 B/op\t   53224 allocs/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - ns/op",
+            "value": 130132023,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - B/op",
+            "value": 958906,
+            "unit": "B/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - allocs/op",
+            "value": 53224,
+            "unit": "allocs/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile",
+            "value": 131836275,
+            "unit": "ns/op\t  958898 B/op\t   53224 allocs/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - ns/op",
+            "value": 131836275,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - B/op",
+            "value": 958898,
+            "unit": "B/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGenerateTile - allocs/op",
+            "value": 53224,
+            "unit": "allocs/op",
+            "extra": "8 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon",
+            "value": 15468705,
+            "unit": "ns/op\t  163600 B/op\t    9195 allocs/op",
+            "extra": "75 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - ns/op",
+            "value": 15468705,
+            "unit": "ns/op",
+            "extra": "75 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - B/op",
+            "value": 163600,
+            "unit": "B/op",
+            "extra": "75 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - allocs/op",
+            "value": 9195,
+            "unit": "allocs/op",
+            "extra": "75 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon",
+            "value": 15649001,
+            "unit": "ns/op\t  163600 B/op\t    9195 allocs/op",
+            "extra": "75 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - ns/op",
+            "value": 15649001,
+            "unit": "ns/op",
+            "extra": "75 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - B/op",
+            "value": 163600,
+            "unit": "B/op",
+            "extra": "75 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - allocs/op",
+            "value": 9195,
+            "unit": "allocs/op",
+            "extra": "75 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon",
+            "value": 15735727,
+            "unit": "ns/op\t  163600 B/op\t    9195 allocs/op",
+            "extra": "74 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - ns/op",
+            "value": 15735727,
+            "unit": "ns/op",
+            "extra": "74 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - B/op",
+            "value": 163600,
+            "unit": "B/op",
+            "extra": "74 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - allocs/op",
+            "value": 9195,
+            "unit": "allocs/op",
+            "extra": "74 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon",
+            "value": 15519993,
+            "unit": "ns/op\t  163600 B/op\t    9195 allocs/op",
+            "extra": "73 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - ns/op",
+            "value": 15519993,
+            "unit": "ns/op",
+            "extra": "73 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - B/op",
+            "value": 163600,
+            "unit": "B/op",
+            "extra": "73 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - allocs/op",
+            "value": 9195,
+            "unit": "allocs/op",
+            "extra": "73 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon",
+            "value": 15654288,
+            "unit": "ns/op\t  163600 B/op\t    9195 allocs/op",
+            "extra": "73 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - ns/op",
+            "value": 15654288,
+            "unit": "ns/op",
+            "extra": "73 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - B/op",
+            "value": 163600,
+            "unit": "B/op",
+            "extra": "73 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - allocs/op",
+            "value": 9195,
+            "unit": "allocs/op",
+            "extra": "73 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon",
+            "value": 15646377,
+            "unit": "ns/op\t  163600 B/op\t    9195 allocs/op",
+            "extra": "76 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - ns/op",
+            "value": 15646377,
+            "unit": "ns/op",
+            "extra": "76 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - B/op",
+            "value": 163600,
+            "unit": "B/op",
+            "extra": "76 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/polygon - allocs/op",
+            "value": 9195,
+            "unit": "allocs/op",
+            "extra": "76 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line",
+            "value": 1654031,
+            "unit": "ns/op\t   18656 B/op\t    1258 allocs/op",
+            "extra": "716 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - ns/op",
+            "value": 1654031,
+            "unit": "ns/op",
+            "extra": "716 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - B/op",
+            "value": 18656,
+            "unit": "B/op",
+            "extra": "716 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - allocs/op",
+            "value": 1258,
+            "unit": "allocs/op",
+            "extra": "716 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line",
+            "value": 1637715,
+            "unit": "ns/op\t   18656 B/op\t    1258 allocs/op",
+            "extra": "720 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - ns/op",
+            "value": 1637715,
+            "unit": "ns/op",
+            "extra": "720 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - B/op",
+            "value": 18656,
+            "unit": "B/op",
+            "extra": "720 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - allocs/op",
+            "value": 1258,
+            "unit": "allocs/op",
+            "extra": "720 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line",
+            "value": 1665385,
+            "unit": "ns/op\t   18656 B/op\t    1258 allocs/op",
+            "extra": "734 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - ns/op",
+            "value": 1665385,
+            "unit": "ns/op",
+            "extra": "734 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - B/op",
+            "value": 18656,
+            "unit": "B/op",
+            "extra": "734 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - allocs/op",
+            "value": 1258,
+            "unit": "allocs/op",
+            "extra": "734 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line",
+            "value": 1644277,
+            "unit": "ns/op\t   18656 B/op\t    1258 allocs/op",
+            "extra": "729 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - ns/op",
+            "value": 1644277,
+            "unit": "ns/op",
+            "extra": "729 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - B/op",
+            "value": 18656,
+            "unit": "B/op",
+            "extra": "729 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - allocs/op",
+            "value": 1258,
+            "unit": "allocs/op",
+            "extra": "729 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line",
+            "value": 1634592,
+            "unit": "ns/op\t   18656 B/op\t    1258 allocs/op",
+            "extra": "727 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - ns/op",
+            "value": 1634592,
+            "unit": "ns/op",
+            "extra": "727 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - B/op",
+            "value": 18656,
+            "unit": "B/op",
+            "extra": "727 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - allocs/op",
+            "value": 1258,
+            "unit": "allocs/op",
+            "extra": "727 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line",
+            "value": 1656291,
+            "unit": "ns/op\t   18656 B/op\t    1258 allocs/op",
+            "extra": "728 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - ns/op",
+            "value": 1656291,
+            "unit": "ns/op",
+            "extra": "728 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - B/op",
+            "value": 18656,
+            "unit": "B/op",
+            "extra": "728 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/line - allocs/op",
+            "value": 1258,
+            "unit": "allocs/op",
+            "extra": "728 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point",
+            "value": 2255,
+            "unit": "ns/op\t      56 B/op\t       4 allocs/op",
+            "extra": "536788 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - ns/op",
+            "value": 2255,
+            "unit": "ns/op",
+            "extra": "536788 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - B/op",
+            "value": 56,
+            "unit": "B/op",
+            "extra": "536788 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - allocs/op",
+            "value": 4,
+            "unit": "allocs/op",
+            "extra": "536788 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point",
+            "value": 2264,
+            "unit": "ns/op\t      56 B/op\t       4 allocs/op",
+            "extra": "530560 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - ns/op",
+            "value": 2264,
+            "unit": "ns/op",
+            "extra": "530560 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - B/op",
+            "value": 56,
+            "unit": "B/op",
+            "extra": "530560 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - allocs/op",
+            "value": 4,
+            "unit": "allocs/op",
+            "extra": "530560 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point",
+            "value": 2274,
+            "unit": "ns/op\t      56 B/op\t       4 allocs/op",
+            "extra": "524613 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - ns/op",
+            "value": 2274,
+            "unit": "ns/op",
+            "extra": "524613 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - B/op",
+            "value": 56,
+            "unit": "B/op",
+            "extra": "524613 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - allocs/op",
+            "value": 4,
+            "unit": "allocs/op",
+            "extra": "524613 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point",
+            "value": 2247,
+            "unit": "ns/op\t      56 B/op\t       4 allocs/op",
+            "extra": "522068 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - ns/op",
+            "value": 2247,
+            "unit": "ns/op",
+            "extra": "522068 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - B/op",
+            "value": 56,
+            "unit": "B/op",
+            "extra": "522068 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - allocs/op",
+            "value": 4,
+            "unit": "allocs/op",
+            "extra": "522068 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point",
+            "value": 2230,
+            "unit": "ns/op\t      56 B/op\t       4 allocs/op",
+            "extra": "512150 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - ns/op",
+            "value": 2230,
+            "unit": "ns/op",
+            "extra": "512150 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - B/op",
+            "value": 56,
+            "unit": "B/op",
+            "extra": "512150 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - allocs/op",
+            "value": 4,
+            "unit": "allocs/op",
+            "extra": "512150 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point",
+            "value": 2247,
+            "unit": "ns/op\t      56 B/op\t       4 allocs/op",
+            "extra": "534378 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - ns/op",
+            "value": 2247,
+            "unit": "ns/op",
+            "extra": "534378 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - B/op",
+            "value": 56,
+            "unit": "B/op",
+            "extra": "534378 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkToMvtGeometry/point - allocs/op",
+            "value": 4,
+            "unit": "allocs/op",
+            "extra": "534378 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures",
+            "value": 76260390,
+            "unit": "ns/op\t  499428 B/op\t   29969 allocs/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - ns/op",
+            "value": 76260390,
+            "unit": "ns/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - B/op",
+            "value": 499428,
+            "unit": "B/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - allocs/op",
+            "value": 29969,
+            "unit": "allocs/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures",
+            "value": 77892351,
+            "unit": "ns/op\t  499430 B/op\t   29969 allocs/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - ns/op",
+            "value": 77892351,
+            "unit": "ns/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - B/op",
+            "value": 499430,
+            "unit": "B/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - allocs/op",
+            "value": 29969,
+            "unit": "allocs/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures",
+            "value": 77542263,
+            "unit": "ns/op\t  499428 B/op\t   29969 allocs/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - ns/op",
+            "value": 77542263,
+            "unit": "ns/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - B/op",
+            "value": 499428,
+            "unit": "B/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - allocs/op",
+            "value": 29969,
+            "unit": "allocs/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures",
+            "value": 77808070,
+            "unit": "ns/op\t  499481 B/op\t   29970 allocs/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - ns/op",
+            "value": 77808070,
+            "unit": "ns/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - B/op",
+            "value": 499481,
+            "unit": "B/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - allocs/op",
+            "value": 29970,
+            "unit": "allocs/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures",
+            "value": 78488088,
+            "unit": "ns/op\t  499461 B/op\t   29970 allocs/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - ns/op",
+            "value": 78488088,
+            "unit": "ns/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - B/op",
+            "value": 499461,
+            "unit": "B/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - allocs/op",
+            "value": 29970,
+            "unit": "allocs/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures",
+            "value": 78508076,
+            "unit": "ns/op\t  499480 B/op\t   29970 allocs/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - ns/op",
+            "value": 78508076,
+            "unit": "ns/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - B/op",
+            "value": 499480,
+            "unit": "B/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetFeatures - allocs/op",
+            "value": 29970,
+            "unit": "allocs/op",
+            "extra": "14 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets",
+            "value": 17536079,
+            "unit": "ns/op\t  266705 B/op\t    2430 allocs/op",
+            "extra": "63 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - ns/op",
+            "value": 17536079,
+            "unit": "ns/op",
+            "extra": "63 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - B/op",
+            "value": 266705,
+            "unit": "B/op",
+            "extra": "63 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - allocs/op",
+            "value": 2430,
+            "unit": "allocs/op",
+            "extra": "63 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets",
+            "value": 17746529,
+            "unit": "ns/op\t  263737 B/op\t    2429 allocs/op",
+            "extra": "67 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - ns/op",
+            "value": 17746529,
+            "unit": "ns/op",
+            "extra": "67 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - B/op",
+            "value": 263737,
+            "unit": "B/op",
+            "extra": "67 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - allocs/op",
+            "value": 2429,
+            "unit": "allocs/op",
+            "extra": "67 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets",
+            "value": 17361929,
+            "unit": "ns/op\t  263695 B/op\t    2429 allocs/op",
+            "extra": "66 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - ns/op",
+            "value": 17361929,
+            "unit": "ns/op",
+            "extra": "66 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - B/op",
+            "value": 263695,
+            "unit": "B/op",
+            "extra": "66 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - allocs/op",
+            "value": 2429,
+            "unit": "allocs/op",
+            "extra": "66 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets",
+            "value": 17282659,
+            "unit": "ns/op\t  266015 B/op\t    2430 allocs/op",
+            "extra": "64 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - ns/op",
+            "value": 17282659,
+            "unit": "ns/op",
+            "extra": "64 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - B/op",
+            "value": 266015,
+            "unit": "B/op",
+            "extra": "64 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - allocs/op",
+            "value": 2430,
+            "unit": "allocs/op",
+            "extra": "64 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets",
+            "value": 17130427,
+            "unit": "ns/op\t  261677 B/op\t    2429 allocs/op",
+            "extra": "68 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - ns/op",
+            "value": 17130427,
+            "unit": "ns/op",
+            "extra": "68 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - B/op",
+            "value": 261677,
+            "unit": "B/op",
+            "extra": "68 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - allocs/op",
+            "value": 2429,
+            "unit": "allocs/op",
+            "extra": "68 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets",
+            "value": 17070289,
+            "unit": "ns/op\t  265338 B/op\t    2430 allocs/op",
+            "extra": "68 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - ns/op",
+            "value": 17070289,
+            "unit": "ns/op",
+            "extra": "68 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - B/op",
+            "value": 265338,
+            "unit": "B/op",
+            "extra": "68 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGetS57Datasets - allocs/op",
+            "value": 2430,
+            "unit": "allocs/op",
+            "extra": "68 times\n4 procs"
           }
         ]
       }
