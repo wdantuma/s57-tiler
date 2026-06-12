@@ -41,6 +41,7 @@ func main() {
 	at := flag.String("at", "", "lon,lat")
 	workers := flag.Int("workers", runtime.NumCPU()-1, "Number of parallel tile workers") // keep one CPU available for system responsiveness
 	dryRun := flag.Bool("dry-run", false, "Scan and report the tile count, then exit without writing any tiles")
+	maxTiles := flag.Int("max-tiles", 0, "Abort before tiling if the run would exceed this many tiles (0 = no limit)")
 	flag.Parse()
 
 	if *workers < 1 {
@@ -128,46 +129,41 @@ func main() {
 	defer stop()
 
 	tiler := s57.NewS57Tiler(datasets)
+	defer tiler.Close() // release its SRS/transform handles on normal exit
 
-	// Pre-pass: compute the tile set for every (dataset, file, zoom) up front so
-	// progress can be reported against a single global total with an ETA. Tile IDs
-	// are tiny, so materializing them all is cheap.
+	// Pre-pass: per file, derive its zoom range and cache its layer extents (one
+	// full scan), then count the tiles for a single global total + ETA. The tile
+	// IDs themselves are NOT materialized — they are streamed per file during
+	// generation (recomputing them from the cached extents is cheap arithmetic), so
+	// a multi-million-tile run doesn't hold the whole set in memory.
 	fmt.Println("Scanning…")
-	var work []workUnit
+	var work []fileWork
 	var grandTotal int64
 	var reports []zoomReport
 	for _, ds := range datasets {
 		for _, file := range ds.Files {
-			fminzoom, fmaxzoom := *minzoom, *maxzoom
+			fw := fileWork{dataset: ds, file: file, minzoom: *minzoom, maxzoom: *maxzoom, single: tile}
 			if tile == nil {
 				zr := dataset.CellZoomRange(file)
 				if !userSetZoom && bounds == nil {
-					fminzoom, fmaxzoom = zr.Min, zr.Max
+					fw.minzoom, fw.maxzoom = zr.Min, zr.Max
 				}
 				reports = append(reports, zoomReport{
-					convMin:  fminzoom,
-					convMax:  fmaxzoom,
+					convMin:  fw.minzoom,
+					convMax:  fw.maxzoom,
 					availMin: zr.Min,
 					availMax: zr.Max,
 				})
-			}
-			for z := fminzoom; z <= fmaxzoom; z++ {
-				var tiles map[string]m.TileID
-				if tile != nil {
-					tiles = map[string]m.TileID{"tile": *tile}
-				} else if bounds != nil {
-					tiles = tiler.GetTilesForBounds(nil, *bounds, z)
+				if bounds != nil {
+					fw.extents = []m.Extrema{*bounds}
 				} else {
-					tiles = tiler.GetTiles(file, z)
+					// The full-scan layer extents are the same for every zoom, so
+					// compute them once per file instead of reopening the cell per zoom.
+					fw.extents = tiler.FileExtents(file)
 				}
-
-				ids := make([]m.TileID, 0, len(tiles))
-				for _, t := range tiles {
-					ids = append(ids, t)
-				}
-				work = append(work, workUnit{dataset: ds, file: file, z: z, tiles: ids, minzoom: fminzoom, maxzoom: fmaxzoom})
-				grandTotal += int64(len(ids))
 			}
+			work = append(work, fw)
+			grandTotal += fw.tileCount()
 		}
 	}
 
@@ -191,6 +187,11 @@ func main() {
 		return
 	}
 
+	// Guardrail against an accidental enormous run (e.g. a wrong dataset or zoom).
+	if *maxTiles > 0 && grandTotal > int64(*maxTiles) {
+		log.Fatalf("would generate %d tiles, exceeding -max-tiles %d; raise the limit or cap the zoom with -maxzoom", grandTotal, *maxTiles)
+	}
+
 	// Track write failures across all workers. A transient error (e.g. disk full,
 	// EPERM) no longer aborts the whole multi-hour run via log.Fatal; instead we
 	// keep going, surface the first error, count the rest, and exit non-zero at the
@@ -206,12 +207,15 @@ func main() {
 
 	prog := newProgress(grandTotal, os.Stdout)
 	go prog.run()
-	for _, wu := range work {
+	for _, fw := range work {
 		if ctx.Err() != nil {
 			break
 		}
-		prog.setStage(fmt.Sprintf("%s, Zoom: %d", wu.file.Id, wu.z))
+		prog.setStage(fw.file.Id)
 
+		// One worker pool per file: each worker's tiler opens this cell's datasource
+		// once and reuses it across every tile and zoom of the file, instead of the
+		// old per-(file,zoom) pool that reopened the cell for every zoom level.
 		jobs := make(chan m.TileID, *workers*2)
 		var wg sync.WaitGroup
 		for w := 0; w < *workers; w++ {
@@ -223,25 +227,20 @@ func main() {
 				// instances cannot be shared across goroutines.
 				workerTiler := s57.NewS57Tiler(datasets)
 				defer workerTiler.Close()
-				for tile := range jobs {
-					err := runTile(func() error { return workerTiler.GenerateTile(*outputPath, wu.file, tile) })
+				for t := range jobs {
+					err := runTile(func() error { return workerTiler.GenerateTile(*outputPath, fw.file, t) })
 					if err != nil {
-						recordFailure(fmt.Sprintf("tile %s z%d %d/%d", wu.file.Id, tile.Z, tile.X, tile.Y), err)
+						recordFailure(fmt.Sprintf("tile %s z%d %d/%d", fw.file.Id, t.Z, t.X, t.Y), err)
 					}
 					prog.inc()
 				}
 			}()
 		}
-		for _, t := range wu.tiles {
-			select {
-			case jobs <- t:
-			case <-ctx.Done():
-			}
-		}
+		fw.streamTiles(ctx, jobs)
 		close(jobs)
 		wg.Wait()
-		if err := tiler.GenerateMetaData(*outputPath, wu.dataset, wu.file, wu.minzoom, wu.maxzoom); err != nil {
-			recordFailure("metadata "+wu.file.Id, err)
+		if err := tiler.GenerateMetaData(*outputPath, fw.dataset, fw.file, fw.minzoom, fw.maxzoom); err != nil {
+			recordFailure("metadata "+fw.file.Id, err)
 		}
 	}
 	prog.finish()
@@ -268,13 +267,51 @@ func runTile(do func() error) (err error) {
 	return do()
 }
 
-// workUnit is the tile set for a single (dataset, file, zoom), materialized during
-// the pre-pass so it can be both counted toward the global total and processed.
-type workUnit struct {
+// fileWork describes the tiling for one cell: its converting zoom range and the
+// cached layer extents the tiles are derived from. Tiles are streamed (recomputed
+// from the extents) rather than materialized, so the global total can be counted
+// without holding millions of TileIDs in memory.
+type fileWork struct {
 	dataset dataset.Dataset
 	file    dataset.File
-	z       int
-	tiles   []m.TileID
 	minzoom int
 	maxzoom int
+	extents []m.Extrema // file/bounds mode; nil in -at mode
+	single  *m.TileID   // -at mode: the one tile to generate
+}
+
+// tileCount returns how many tiles this file contributes to the run.
+func (fw fileWork) tileCount() int64 {
+	if fw.single != nil {
+		return 1
+	}
+	var n int64
+	for z := fw.minzoom; z <= fw.maxzoom; z++ {
+		n += int64(len(s57.TilesForExtents(fw.extents, z)))
+	}
+	return n
+}
+
+// streamTiles feeds this file's tiles (all zooms) into jobs, stopping early if the
+// context is cancelled. Recomputed from the cached extents — no full set is held.
+func (fw fileWork) streamTiles(ctx context.Context, jobs chan<- m.TileID) {
+	send := func(t m.TileID) bool {
+		select {
+		case jobs <- t:
+			return true
+		case <-ctx.Done():
+			return false
+		}
+	}
+	if fw.single != nil {
+		send(*fw.single)
+		return
+	}
+	for z := fw.minzoom; z <= fw.maxzoom; z++ {
+		for _, t := range s57.TilesForExtents(fw.extents, z) {
+			if !send(t) {
+				return
+			}
+		}
+	}
 }

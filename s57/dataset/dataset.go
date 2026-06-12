@@ -37,6 +37,11 @@ type File struct {
 	Path   string
 	Title  string
 	Layers map[string]Layer
+	// Intu (DSID_INTU usage band) and Cscl (DSPM_CSCL compilation scale) are read
+	// once from the cell's DSID record at discovery, so the zoom derivation
+	// (UsageBand/CellZoomRange) doesn't reopen the datasource per cell.
+	Intu int
+	Cscl int
 }
 
 type Dataset struct {
@@ -187,12 +192,18 @@ func GetS57Datasets(path string) ([]Dataset, error) {
 					// on large catalogs).
 					datasource := gdal.OpenDataSource(filePath, 0)
 					layers := getLayers(datasource)
+					intu, cscl, hasDSID := readDSID(datasource)
 					datasource.Destroy()
+					if !hasDSID {
+						fmt.Fprintf(os.Stderr, "warning: %s has no DSID record; using the default zoom range\n", cellID)
+					}
 					dataset.Files = append(dataset.Files, File{
 						Id:     cellID,
 						Path:   filePath,
 						Title:  title,
 						Layers: layers,
+						Intu:   intu,
+						Cscl:   cscl,
 					})
 				}
 				datasets = append(datasets, dataset)
